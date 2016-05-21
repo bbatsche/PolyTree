@@ -1,0 +1,37 @@
+{
+    "name": "bebat/polytree",
+    "type": "library",
+    "description": "Effecient implementation of a polytree datastructure in Laravel Eloquent",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Ben Batschelet",
+            "email": "ben.batschelet@gmail.com",
+            "homepage": "http://github.com/bbatsche"
+        }
+    ],
+    "require": {
+        "php" : ">=5.5.0",
+        "illuminate/database": "~5.1",
+        "illuminate/config": "~5.1",
+        "illuminate/console": "~5.1"
+    },
+    "require-dev": {
+        "phpspec/phpspec": "~2.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BeBat\\PolyTree\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BeBat\\PolyTree\\Test\\": "tests"
+        }
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
