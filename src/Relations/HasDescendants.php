@@ -13,4 +13,11 @@ class HasDescendants extends Indirect
 
         parent::__construct($node, $foreignKey, $otherKey);
     }
+
+    public function attach($child, array $attributes = [], $touch = true)
+    {
+        parent::attach($child);
+
+        return static::attachAncestry($this->parent, $child, $this);
+    }
 }
