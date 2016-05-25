@@ -1,0 +1,6 @@
+suites:
+  polytree_suite:
+    namespace: BeBat\PolyTree
+    psr4_prefix: BeBat\PolyTree
+
+bootstrap: spec/bootstrap.php
