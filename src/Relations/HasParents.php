@@ -21,7 +21,9 @@ class HasParents extends Direct
             throw new \Exception("We're not quite ready to deal with this situation yet");
         }
 
-        $this->getBaseQuery()->getConnection()->beginTransaction();
+        $connection = $this->getBaseQuery()->getConnection();
+
+        $connection->beginTransaction();
 
         parent::attach($parent, $attributes, $touch);
 
@@ -31,6 +33,6 @@ class HasParents extends Direct
         $ancestors->attach($parent);
         $ancestors->lock();
 
-        $this->getBaseQuery()->getConnection()->commit();
+        $connection->commit();
     }
 }
