@@ -10,13 +10,6 @@ use BeBat\PolyTree\Relations\HasParents;
 
 trait Node
 {
-    protected $relationsTable = null;
-    protected $ancestryTable  = null;
-    protected $parentKey      = null;
-    protected $childKey       = null;
-    protected $ancestorKey    = null;
-    protected $descendantKey  = null;
-
     public function setRelationsTable($table = null)
     {
         $this->relationsTable = $table;
