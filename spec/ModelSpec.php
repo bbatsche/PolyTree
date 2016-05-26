@@ -2,9 +2,9 @@
 
 namespace spec\BeBat\PolyTree;
 
+use BeBat\PolyTree\Model as BaseModel;
 use PhpSpec\ObjectBehavior;
 use Prophecy\Argument;
-use BeBat\PolyTree\Model as BaseModel;
 
 class ModelSpec extends ObjectBehavior
 {

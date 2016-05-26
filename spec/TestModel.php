@@ -1,6 +1,6 @@
 <?php
 
-namespace BeBat\PolyTree\Test;
+namespace spec\BeBat\PolyTree;
 
 use BeBat\PolyTree\Model as PolyTreeModel;
 

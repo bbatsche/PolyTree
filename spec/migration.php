@@ -1,9 +1,5 @@
 <?php
 
-namespace BeBat\PolyTree\Test;
-
-require_once 'bootstrap.php';
-
 use Illuminate\Database\Capsule\Manager;
 
 Manager::schema()->create('test_models', function ($table)
