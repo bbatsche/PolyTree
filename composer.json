@@ -17,10 +17,12 @@
         "illuminate/console": "~5.1"
     },
     "require-dev": {
-        "phpspec/phpspec": "~2.5",
         "doctrine/dbal": "~2.5",
         "illuminate/events": "~5.1",
-        "psy/psysh": "~0.7"
+        "psy/psysh": "~0.7",
+        "phpunit/phpunit": "~4.8",
+        "mockery/mockery": "~0.9",
+        "bebat/verify": "~1.1"
     },
     "autoload": {
         "psr-4": {
@@ -29,7 +31,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "spec\\BeBat\\PolyTree\\": "spec"
+            "BeBat\\PolyTree\\Test": "tests"
         }
     },
     "extra": {
