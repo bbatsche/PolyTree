@@ -27,7 +27,7 @@ class HasChildren extends Direct
 
         parent::attach($child, $attributes, $touch);
 
-        $descendants = $this->parent->hasDescendants();
+        $descendants = $this->getParent()->hasDescendants();
 
         $descendants->unlock();
         $descendants->attach($child);
