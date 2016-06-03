@@ -27,7 +27,7 @@ class HasParents extends Direct
 
         parent::attach($parent, $attributes, $touch);
 
-        $ancestors = $this->parent->hasAncestors();
+        $ancestors = $this->getParent()->hasAncestors();
 
         $ancestors->unlock();
         $ancestors->attach($parent);
