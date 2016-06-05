@@ -6,10 +6,6 @@ use BeBat\PolyTree\Relations\HasChildren;
 use Mockery;
 use PHPUnit_Framework_TestCase as TestCase;
 
-/**
- * @runTestsInSeparateProcesses
- * @preserveGlobalState disabled
- */
 class HasChildrenTest extends TestCase
 {
     protected function tearDown()
