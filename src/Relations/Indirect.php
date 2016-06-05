@@ -59,8 +59,6 @@ abstract class Indirect extends BelongsToMany
 
     public static function attachAncestry(Node $parent, Node $child, Indirect $instance)
     {
-        $grammar = $instance->getBaseQuery()->getGrammar();
-
         if ($instance->isLocked()) {
             throw new LockedRelationship();
         }
@@ -79,6 +77,8 @@ abstract class Indirect extends BelongsToMany
             return;
         }
 
+        $grammar = $instance->getBaseQuery()->getGrammar();
+
         // Select all nodes that descend from $child...
         $childDescendantQ = $instance->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
         // ...that aren't already descendants of $parent
@@ -96,8 +96,8 @@ abstract class Indirect extends BelongsToMany
         // ...that aren't already ancestors of $child
         $parentAncestorQ->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child, $instance)
         {
-            $q->select($child->getDescendantKeyName())->from($instance->getTable())
-                ->where($child->getAncestorKeyName(), $child->getKey());
+            $q->select($child->getAncestorKeyName())->from($instance->getTable())
+                ->where($child->getDescendantKeyName(), $child->getKey());
         });
 
         $parentAncestorQ->addSelect($parent->getAncestorKeyName());
