@@ -32,7 +32,7 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "BeBat\\PolyTree\\Test\\": "tests"
+            "BeBat\\PolyTree\\Test\\": [ "tests", "tests/lib" ]
         }
     },
     "extra": {

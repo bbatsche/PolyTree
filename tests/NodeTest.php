@@ -54,8 +54,3 @@ class NodeTest extends TestCase
         verify($this->model->hasDescendants())->isInstanceOf('BeBat\PolyTree\Relations\HasDescendants');
     }
 }
-
-class TestModel extends BaseModel implements NodeInterface
-{
-    use NodeTrait;
-}
