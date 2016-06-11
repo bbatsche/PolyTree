@@ -95,6 +95,9 @@ class IndirectTest extends TestCase
         IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
     }
 
+    /**
+     * Test what happens if parent is a descendant of child; should throw an exception
+     */
     public function testAttachAncestryThrowsCycleExceptionForChild()
     {
         $this->childNode->shouldReceive('hasDescendants')->andReturn($this->mockHasOneRelative)->once();
@@ -104,6 +107,9 @@ class IndirectTest extends TestCase
         IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
     }
 
+    /**
+     * Test what happens if child is an ancestor of parent; should throw an exception
+     */
     public function testAttachAncestryThrowsCycleExceptionForParent()
     {
         $this->parentNode->shouldReceive('hasAncestors')->andReturn($this->mockHasOneRelative)->once();
@@ -113,6 +119,9 @@ class IndirectTest extends TestCase
         IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
     }
 
+    /**
+     * Test what happens if parent is an ancestor of child; should short circuit and do nothing
+     */
     public function testAttachAncestryDoesNothingForChild()
     {
         $this->childNode->shouldReceive('hasAncestors')->andReturn($this->mockHasOneRelative)->once();
@@ -120,6 +129,9 @@ class IndirectTest extends TestCase
         verify(IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation))->isEmpty();
     }
 
+    /**
+     * Test what happens if child is a descendant of parent; should short circuit and do nothing
+     */
     public function testAttachAncestryDoesNothingForParent()
     {
         $this->parentNode->shouldReceive('hasDescendants')->andReturn($this->mockHasOneRelative)->once();
