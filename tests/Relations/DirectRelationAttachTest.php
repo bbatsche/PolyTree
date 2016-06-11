@@ -2,7 +2,6 @@
 
 namespace BeBat\PolyTree\Test\Relations;
 
-use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Relations\HasParents;
 use BeBat\PolyTree\Relations\HasChildren;
 use Mockery;
@@ -19,7 +18,7 @@ class DirectRelationAttachTest extends TestCase
     protected $directRel;
     protected $childNode;
 
-    protected function setUp()
+    public function setUp()
     {
         $this->directRel       = Mockery::mock('overload:BeBat\PolyTree\Relations\Direct');
         $this->parentNode      = Mockery::mock('BeBat\PolyTree\Contracts\Node');
@@ -38,7 +37,7 @@ class DirectRelationAttachTest extends TestCase
         $this->parentNode->shouldReceive('getChildKeyName')->withNoArgs()->andReturn('child_key_name');
     }
 
-    protected function tearDown()
+    public function tearDown()
     {
         Mockery::close();
     }

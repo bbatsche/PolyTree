@@ -8,7 +8,7 @@ use PHPUnit_Framework_TestCase as TestCase;
 
 class HasChildrenTest extends TestCase
 {
-    protected function tearDown()
+    public function tearDown()
     {
         Mockery::close();
     }
