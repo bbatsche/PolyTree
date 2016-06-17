@@ -74,7 +74,7 @@ abstract class Indirect extends BelongsToMany
         if ($child->hasAncestors()->newPivotStatementForId($parent->getKey())->count() > 0 ||
             $parent->hasDescendants()->newPivotStatementForId($child->getKey())->count() > 0
         ) {
-            return;
+            return false;
         }
 
         $grammar = $instance->getBaseQuery()->getGrammar();
@@ -113,6 +113,9 @@ abstract class Indirect extends BelongsToMany
                 $fullSelect->toSql();
 
         $insert = $instance->newPivotStatement()->raw($insertSql);
-        return $instance->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
+
+        $instance->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
+
+        return true;
     }
 }
