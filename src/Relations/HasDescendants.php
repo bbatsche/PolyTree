@@ -22,8 +22,12 @@ class HasDescendants extends Indirect
             throw new CycleException();
         }
 
-        if ($this->attachAncestry($this->parent, $child)) {
-            parent::attach($child);
+        if ($this->newPivotStatementForId($child->getKey())->count() > 0) {
+            return;
         }
+
+        $this->attachAncestry($this->parent, $child);
+
+        parent::attach($child);
     }
 }

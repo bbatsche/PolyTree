@@ -9,42 +9,14 @@ use PHPUnit_Framework_TestCase as TestCase;
 
 class IndirectTest extends TestCase
 {
-    protected $parentNode;
-    protected $childNode;
     protected $relation;
-
-    protected $mockHasNoRelatives;
-    protected $mockHasOneRelative;
+    protected $node;
 
     public function setUp()
     {
-        $this->parentNode = Mockery::mock('BeBat\PolyTree\Model');
-        $this->childNode  = Mockery::mock('BeBat\PolyTree\Model');
+        $this->node = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
 
-        $partialMock = 'BeBat\PolyTree\Relations\Indirect[isLocked]';
-        $constructorArgs = [new TestModel(), 'parent_id', 'child_id'];
-
-        // Yes we're mocking the SUT, just partially though.
-        $this->relation = Mockery::mock($partialMock, $constructorArgs);
-        $this->relation->shouldReceive('isLocked')->withNoArgs()->andReturn(false)->byDefault();
-
-        // Mock two nearly identical demeter chain for zero or one count.
-        // See: https://github.com/padraic/mockery/issues/607
-        $this->mockHasNoRelatives = Mockery::mock('noRelatives');
-        $this->mockHasOneRelative = Mockery::mock('oneRelative');
-
-        $this->mockHasNoRelatives->shouldReceive('newPivotStatementForId->count')->andReturn(0);
-        $this->mockHasOneRelative->shouldReceive('newPivotStatementForId->count')->andReturn(1);
-
-        // By default, each node has no ancestors or descendants
-        // We will override these one by one in the test cases below
-        $this->parentNode->shouldReceive('hasDescendants')->andReturn($this->mockHasNoRelatives)->byDefault();
-        $this->parentNode->shouldReceive('hasAncestors')->andReturn($this->mockHasNoRelatives)->byDefault();
-        $this->childNode->shouldReceive('hasDescendants')->andReturn($this->mockHasNoRelatives)->byDefault();
-        $this->childNode->shouldReceive('hasAncestors')->andReturn($this->mockHasNoRelatives)->byDefault();
-
-        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
-        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
+        $this->relation = new Indirect($this->node, 'foreign_key', 'other_key');
     }
 
     public function tearDown()
@@ -54,68 +26,34 @@ class IndirectTest extends TestCase
 
     public function testLocks()
     {
-        $node = new TestModel();
+        verify('relation is locked by default', $this->relation->isLocked())->isTrue();
 
-        $relation = new Indirect($node, 'foreign_key', 'other_key');
+        verify('unlock is chainable',      $this->relation->unLock())->sameAs($this->relation);
+        verify('relation is now unlocked', $this->relation->isLocked())->isFalse();
 
-        verify('relation is locked by default', $relation->isLocked())->isTrue();
-
-        verify('unlock is chainable',      $relation->unLock())->sameAs($relation);
-        verify('relation is now unlocked', $relation->isLocked())->isFalse();
-
-        verify('lock is chainable',      $relation->lock())->sameAs($relation);
-        verify('relation is now locked', $relation->isLocked())->isTrue();
+        verify('lock is chainable',      $this->relation->lock())->sameAs($this->relation);
+        verify('relation is now locked', $this->relation->isLocked())->isTrue();
     }
 
     public function testAttachThrowsLockedException()
     {
-        $node = new TestModel();
-
-        $relation = new Indirect($node, 'foreign_key', 'other_key');
-
         $this->setExpectedException('BeBat\PolyTree\Exceptions\LockedRelationship');
 
-        $relation->attach('test');
+        $this->relation->attach('test');
     }
 
     public function testDetachThrowsLockedException()
     {
-        $node = new TestModel();
-
-        $relation = new Indirect($node, 'foreign_key', 'other_key');
-
         $this->setExpectedException('BeBat\PolyTree\Exceptions\LockedRelationship');
 
-        $relation->detach('test');
+        $this->relation->detach('test');
     }
 
     public function testAttachAncestryThrowsLockedException()
     {
-        $this->relation->shouldReceive('isLocked')->withNoArgs()->andReturn(true)->once();
-
         $this->setExpectedException('BeBat\PolyTree\Exceptions\LockedRelationship');
 
-        $this->relation->attachAncestry($this->parentNode, $this->childNode);
-    }
-
-    /**
-     * Test what happens if parent is an ancestor of child; should short circuit and do nothing
-     */
-    public function testAttachAncestryDoesNothingForChild()
-    {
-        $this->childNode->shouldReceive('hasAncestors')->andReturn($this->mockHasOneRelative)->once();
-
-        verify($this->relation->attachAncestry($this->parentNode, $this->childNode))->isFalse();
-    }
-
-    /**
-     * Test what happens if child is a descendant of parent; should short circuit and do nothing
-     */
-    public function testAttachAncestryDoesNothingForParent()
-    {
-        $this->parentNode->shouldReceive('hasDescendants')->andReturn($this->mockHasOneRelative)->once();
-
-        verify($this->relation->attachAncestry($this->parentNode, $this->childNode))->isFalse();
+        $this->relation->attachAncestry($this->node, $this->node);
     }
 }
 

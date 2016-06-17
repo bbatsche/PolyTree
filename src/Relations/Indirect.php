@@ -126,13 +126,6 @@ abstract class Indirect extends BelongsToMany
             throw new LockedRelationship();
         }
 
-        // Is $parent already an ancestor of $child or is $child already a descendant of $parent? If so, our work here is done! (again, these two queries should be the same)
-        if ($child->hasAncestors()->newPivotStatementForId($parent->getKey())->count() > 0 ||
-            $parent->hasDescendants()->newPivotStatementForId($child->getKey())->count() > 0
-        ) {
-            return false;
-        }
-
         $grammar = $this->getBaseQuery()->getGrammar();
 
         $joinedNodesQ     = $this->getQueryForJoinedNodes($parent, $child);
