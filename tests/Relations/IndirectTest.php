@@ -99,30 +99,6 @@ class IndirectTest extends TestCase
     }
 
     /**
-     * Test what happens if parent is a descendant of child; should throw an exception
-     */
-    public function testAttachAncestryThrowsCycleExceptionForChild()
-    {
-        $this->childNode->shouldReceive('hasDescendants')->andReturn($this->mockHasOneRelative)->once();
-
-        $this->setExpectedException('BeBat\PolyTree\Exceptions\Cycle');
-
-        $this->relation->attachAncestry($this->parentNode, $this->childNode);
-    }
-
-    /**
-     * Test what happens if child is an ancestor of parent; should throw an exception
-     */
-    public function testAttachAncestryThrowsCycleExceptionForParent()
-    {
-        $this->parentNode->shouldReceive('hasAncestors')->andReturn($this->mockHasOneRelative)->once();
-
-        $this->setExpectedException('BeBat\PolyTree\Exceptions\Cycle');
-
-        $this->relation->attachAncestry($this->parentNode, $this->childNode);
-    }
-
-    /**
      * Test what happens if parent is an ancestor of child; should short circuit and do nothing
      */
     public function testAttachAncestryDoesNothingForChild()

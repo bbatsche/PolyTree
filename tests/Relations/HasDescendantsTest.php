@@ -26,4 +26,20 @@ class HasDescendantsTest extends TestCase
         verify('foreign key is ancestor', $relation->getForeignKey())->endsWith('.ancestor_key_name');
         verify('other key is descendant', $relation->getOtherKey())->endsWith('.descendant_key_name');
     }
+
+    public function testThrowsCycleException()
+    {
+        $parentNode = Mockery::mock('BeBat\PolyTree\Model[getKey]');
+        $childNode  = Mockery::mock('BeBat\PolyTree\Model');
+
+        $parentNode->shouldReceive('getKey')->withNoArgs()->andReturn('parent_key');
+        $childNode->shouldReceive('hasDescendants->newPivotStatementForId->count')->andReturn(1)->once();
+
+        $this->setExpectedException('BeBat\PolyTree\Exceptions\Cycle');
+
+        $relation = new HasDescendants($parentNode);
+
+        $relation->attach($childNode);
+    }
+
 }

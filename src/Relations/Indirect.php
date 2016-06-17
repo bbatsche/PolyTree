@@ -3,7 +3,6 @@
 namespace BeBat\PolyTree\Relations;
 
 use BeBat\PolyTree\Contracts\Node;
-use BeBat\PolyTree\Exceptions\Cycle as CycleException;
 use BeBat\PolyTree\Exceptions\LockedRelationship;
 
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -125,13 +124,6 @@ abstract class Indirect extends BelongsToMany
     {
         if ($this->isLocked()) {
             throw new LockedRelationship();
-        }
-
-        // Is $parent already a descendant of $child or is $child already an ancestor of $parent? If so, attachment would cause a cycle (logically, these two queries should be idential)
-        if ($child->hasDescendants()->newPivotStatementForId($parent->getKey())->count() > 0 ||
-            $parent->hasAncestors()->newPivotStatementForId($child->getKey())->count() > 0
-        ) {
-            throw new CycleException();
         }
 
         // Is $parent already an ancestor of $child or is $child already a descendant of $parent? If so, our work here is done! (again, these two queries should be the same)
