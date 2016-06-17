@@ -79,6 +79,24 @@ abstract class Indirect extends BelongsToMany
 
         $grammar = $instance->getBaseQuery()->getGrammar();
 
+        $joinedNodes = $instance->newPivotStatement()
+            ->selectRaw($grammar->wrapTable($instance->getTable()).'.'.$grammar->wrap($parent->getAncestorKeyName()))
+            ->selectRaw('joined.'.$grammar->wrap($child->getDescendantKeyName()));
+
+        $joinedNodes->join($instance->getTable().' AS joined', function($join) use ($parent, $child, $instance, $grammar)
+        {
+            $join->where('joined.'.$child->getAncestorKeyName(), '=', $child->getKey());
+            $join->where($instance->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
+        });
+
+        $joinedNodes->whereNotExists(function($q) use ($instance, $grammar)
+        {
+            $q->select($instance->newPivotStatement()->raw(1))
+                ->from($instance->getTable().' AS inner')
+                ->whereRaw('inner.'.$grammar->wrap($instance->parent->getAncestorKeyName()).' = '.$grammar->wrapTable($instance->getTable()).'.'.$grammar->wrap($instance->parent->getAncestorKeyName()))
+                ->whereRaw('inner.'.$grammar->wrap($instance->parent->getDescendantKeyName()).' = joined.'.$grammar->wrap($instance->parent->getDescendantKeyName()));
+        });
+
         // Select all nodes that descend from $child...
         $childDescendantQ = $instance->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
         // ...that aren't already descendants of $parent
@@ -103,7 +121,7 @@ abstract class Indirect extends BelongsToMany
         $parentAncestorQ->addSelect($parent->getAncestorKeyName());
         $parentAncestorQ->selectRaw('? as ' . $grammar->wrap($child->getDescendantKeyName()), [$child->getKey()]);
 
-        $fullSelect = $childDescendantQ->unionAll($parentAncestorQ);
+        $fullSelect = $joinedNodes->unionAll($childDescendantQ)->unionAll($parentAncestorQ);
 
         // Insert into table...
         // ... (columns) ...
