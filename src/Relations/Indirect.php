@@ -57,6 +57,36 @@ abstract class Indirect extends BelongsToMany
         return parent::detach($id, $touch);
     }
 
+    public function getQueryForJoinedNodes(Node $parent, Node $child)
+    {
+        $query = $this->newPivotStatement()
+            ->addSelect($this->getTable().'.'.$parent->getAncestorKeyName())
+            ->addSelect('joined.'.$child->getDescendantKeyName());
+
+        $query->join($this->getTable().' AS joined', function($join) use ($parent, $child)
+        {
+            $join->where('joined.'.$child->getAncestorKeyName(), '=', $child->getKey());
+            $join->where($this->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
+        });
+
+        $query->whereNotExists(function($q)
+        {
+            $grammar = $this->getBaseQuery()->getGrammar();
+
+            $table = $grammar->wrapTable($this->getTable());
+
+            $ancestorCol   = $grammar->wrap($this->parent->getAncestorKeyName());
+            $descendantCol = $grammar->wrap($this->parent->getDescendantKeyName());
+
+            $q->select($this->newPivotStatement()->raw(1))
+                ->from($this->getTable().' AS inner')
+                ->whereRaw("inner.$ancestorCol = $table.$ancestorCol")
+                ->whereRaw("inner.$descendantCol = joined.$descendantCol");
+        });
+
+        return $query;
+    }
+
     public function attachAncestry(Node $parent, Node $child)
     {
         if ($this->isLocked()) {
@@ -79,23 +109,7 @@ abstract class Indirect extends BelongsToMany
 
         $grammar = $this->getBaseQuery()->getGrammar();
 
-        $joinedNodes = $this->newPivotStatement()
-            ->selectRaw($grammar->wrapTable($this->getTable()).'.'.$grammar->wrap($parent->getAncestorKeyName()))
-            ->selectRaw('joined.'.$grammar->wrap($child->getDescendantKeyName()));
-
-        $joinedNodes->join($this->getTable().' AS joined', function($join) use ($parent, $child, $grammar)
-        {
-            $join->where('joined.'.$child->getAncestorKeyName(), '=', $child->getKey());
-            $join->where($this->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
-        });
-
-        $joinedNodes->whereNotExists(function($q) use ($grammar)
-        {
-            $q->select($this->newPivotStatement()->raw(1))
-                ->from($this->getTable().' AS inner')
-                ->whereRaw('inner.'.$grammar->wrap($this->parent->getAncestorKeyName()).' = '.$grammar->wrapTable($this->getTable()).'.'.$grammar->wrap($this->parent->getAncestorKeyName()))
-                ->whereRaw('inner.'.$grammar->wrap($this->parent->getDescendantKeyName()).' = joined.'.$grammar->wrap($this->parent->getDescendantKeyName()));
-        });
+        $joinedNodes = $this->getQueryForJoinedNodes($parent, $child);
 
         // Select all nodes that descend from $child...
         $childDescendantQ = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
