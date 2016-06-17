@@ -57,9 +57,9 @@ abstract class Indirect extends BelongsToMany
         return parent::detach($id, $touch);
     }
 
-    public static function attachAncestry(Node $parent, Node $child, Indirect $instance)
+    public function attachAncestry(Node $parent, Node $child)
     {
-        if ($instance->isLocked()) {
+        if ($this->isLocked()) {
             throw new LockedRelationship();
         }
 
@@ -77,32 +77,32 @@ abstract class Indirect extends BelongsToMany
             return false;
         }
 
-        $grammar = $instance->getBaseQuery()->getGrammar();
+        $grammar = $this->getBaseQuery()->getGrammar();
 
-        $joinedNodes = $instance->newPivotStatement()
-            ->selectRaw($grammar->wrapTable($instance->getTable()).'.'.$grammar->wrap($parent->getAncestorKeyName()))
+        $joinedNodes = $this->newPivotStatement()
+            ->selectRaw($grammar->wrapTable($this->getTable()).'.'.$grammar->wrap($parent->getAncestorKeyName()))
             ->selectRaw('joined.'.$grammar->wrap($child->getDescendantKeyName()));
 
-        $joinedNodes->join($instance->getTable().' AS joined', function($join) use ($parent, $child, $instance, $grammar)
+        $joinedNodes->join($this->getTable().' AS joined', function($join) use ($parent, $child, $grammar)
         {
             $join->where('joined.'.$child->getAncestorKeyName(), '=', $child->getKey());
-            $join->where($instance->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
+            $join->where($this->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
         });
 
-        $joinedNodes->whereNotExists(function($q) use ($instance, $grammar)
+        $joinedNodes->whereNotExists(function($q) use ($grammar)
         {
-            $q->select($instance->newPivotStatement()->raw(1))
-                ->from($instance->getTable().' AS inner')
-                ->whereRaw('inner.'.$grammar->wrap($instance->parent->getAncestorKeyName()).' = '.$grammar->wrapTable($instance->getTable()).'.'.$grammar->wrap($instance->parent->getAncestorKeyName()))
-                ->whereRaw('inner.'.$grammar->wrap($instance->parent->getDescendantKeyName()).' = joined.'.$grammar->wrap($instance->parent->getDescendantKeyName()));
+            $q->select($this->newPivotStatement()->raw(1))
+                ->from($this->getTable().' AS inner')
+                ->whereRaw('inner.'.$grammar->wrap($this->parent->getAncestorKeyName()).' = '.$grammar->wrapTable($this->getTable()).'.'.$grammar->wrap($this->parent->getAncestorKeyName()))
+                ->whereRaw('inner.'.$grammar->wrap($this->parent->getDescendantKeyName()).' = joined.'.$grammar->wrap($this->parent->getDescendantKeyName()));
         });
 
         // Select all nodes that descend from $child...
-        $childDescendantQ = $instance->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
+        $childDescendantQ = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
         // ...that aren't already descendants of $parent
-        $childDescendantQ->whereNotIn($child->getDescendantKeyName(), function($q) use ($parent, $instance)
+        $childDescendantQ->whereNotIn($child->getDescendantKeyName(), function($q) use ($parent)
         {
-            $q->select($parent->getDescendantKeyName())->from($instance->getTable())
+            $q->select($parent->getDescendantKeyName())->from($this->getTable())
                 ->where($parent->getAncestorKeyName(), $parent->getKey());
         });
 
@@ -110,11 +110,11 @@ abstract class Indirect extends BelongsToMany
         $childDescendantQ->addSelect($child->getDescendantKeyName());
 
         // Select all nodes that are ancestors of $parent...
-        $parentAncestorQ = $instance->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
+        $parentAncestorQ = $this->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
         // ...that aren't already ancestors of $child
-        $parentAncestorQ->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child, $instance)
+        $parentAncestorQ->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child)
         {
-            $q->select($child->getAncestorKeyName())->from($instance->getTable())
+            $q->select($child->getAncestorKeyName())->from($this->getTable())
                 ->where($child->getDescendantKeyName(), $child->getKey());
         });
 
@@ -126,13 +126,13 @@ abstract class Indirect extends BelongsToMany
         // Insert into table...
         // ... (columns) ...
         // ... union'd select statements
-        $insertSql = 'INSERT INTO ' . $grammar->wrapTable($instance->getTable()) .
+        $insertSql = 'INSERT INTO ' . $grammar->wrapTable($this->getTable()) .
             ' (' . $grammar->columnize([$parent->getAncestorKeyName(), $child->getDescendantKeyName()]) . ') ' .
                 $fullSelect->toSql();
 
-        $insert = $instance->newPivotStatement()->raw($insertSql);
+        $insert = $this->newPivotStatement()->raw($insertSql);
 
-        $instance->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
+        $this->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
 
         return true;
     }

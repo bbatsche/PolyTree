@@ -21,8 +21,11 @@ class IndirectTest extends TestCase
         $this->parentNode = Mockery::mock('BeBat\PolyTree\Model');
         $this->childNode  = Mockery::mock('BeBat\PolyTree\Model');
 
-        // Yes we're mocking the supposed SUT. Because we're passing the mocked SUT to the REAL SUT.
-        $this->relation = Mockery::mock('BeBat\PolyTree\Relations\Indirect');
+        $partialMock = 'BeBat\PolyTree\Relations\Indirect[isLocked]';
+        $constructorArgs = [new TestModel(), 'parent_id', 'child_id'];
+
+        // Yes we're mocking the SUT, just partially though.
+        $this->relation = Mockery::mock($partialMock, $constructorArgs);
         $this->relation->shouldReceive('isLocked')->withNoArgs()->andReturn(false)->byDefault();
 
         // Mock two nearly identical demeter chain for zero or one count.
@@ -92,7 +95,7 @@ class IndirectTest extends TestCase
 
         $this->setExpectedException('BeBat\PolyTree\Exceptions\LockedRelationship');
 
-        IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
+        $this->relation->attachAncestry($this->parentNode, $this->childNode);
     }
 
     /**
@@ -104,7 +107,7 @@ class IndirectTest extends TestCase
 
         $this->setExpectedException('BeBat\PolyTree\Exceptions\Cycle');
 
-        IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
+        $this->relation->attachAncestry($this->parentNode, $this->childNode);
     }
 
     /**
@@ -116,7 +119,7 @@ class IndirectTest extends TestCase
 
         $this->setExpectedException('BeBat\PolyTree\Exceptions\Cycle');
 
-        IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation);
+        $this->relation->attachAncestry($this->parentNode, $this->childNode);
     }
 
     /**
@@ -126,7 +129,7 @@ class IndirectTest extends TestCase
     {
         $this->childNode->shouldReceive('hasAncestors')->andReturn($this->mockHasOneRelative)->once();
 
-        verify(IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation))->isEmpty();
+        verify($this->relation->attachAncestry($this->parentNode, $this->childNode))->isFalse();
     }
 
     /**
@@ -136,7 +139,7 @@ class IndirectTest extends TestCase
     {
         $this->parentNode->shouldReceive('hasDescendants')->andReturn($this->mockHasOneRelative)->once();
 
-        verify(IndirectBase::attachAncestry($this->parentNode, $this->childNode, $this->relation))->isEmpty();
+        verify($this->relation->attachAncestry($this->parentNode, $this->childNode))->isFalse();
     }
 }
 

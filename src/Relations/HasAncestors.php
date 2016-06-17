@@ -16,7 +16,7 @@ class HasAncestors extends Indirect
 
     public function attach($parent, array $attributes = [], $touch = true)
     {
-        if (static::attachAncestry($parent, $this->parent, $this)) {
+        if ($this->attachAncestry($parent, $this->parent)) {
             parent::attach($parent);
         }
     }
