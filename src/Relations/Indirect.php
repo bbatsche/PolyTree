@@ -87,6 +87,40 @@ abstract class Indirect extends BelongsToMany
         return $query;
     }
 
+    public function getQueryForChildDescendants(Node $parent, Node $child)
+    {
+        // Select all nodes that descend from $child...
+        $query = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
+        // ...that aren't already descendants of $parent
+        $query->whereNotIn($child->getDescendantKeyName(), function($q) use ($parent)
+        {
+            $q->select($parent->getDescendantKeyName())->from($this->getTable())
+                ->where($parent->getAncestorKeyName(), $parent->getKey());
+        });
+
+        $query->selectRaw('?', [$parent->getKey()]);
+        $query->addSelect($child->getDescendantKeyName());
+
+        return $query;
+    }
+
+    public function getQueryForParentAncestors(Node $parent, Node $child)
+    {
+        // Select all nodes that are ancestors of $parent...
+        $query = $this->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
+        // ...that aren't already ancestors of $child
+        $query->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child)
+        {
+            $q->select($child->getAncestorKeyName())->from($this->getTable())
+                ->where($child->getDescendantKeyName(), $child->getKey());
+        });
+
+        $query->addSelect($parent->getAncestorKeyName());
+        $query->selectRaw('?', [$child->getKey()]);
+
+        return $query;
+    }
+
     public function attachAncestry(Node $parent, Node $child)
     {
         if ($this->isLocked()) {
@@ -109,33 +143,11 @@ abstract class Indirect extends BelongsToMany
 
         $grammar = $this->getBaseQuery()->getGrammar();
 
-        $joinedNodes = $this->getQueryForJoinedNodes($parent, $child);
+        $joinedNodesQ     = $this->getQueryForJoinedNodes($parent, $child);
+        $childDescendantQ = $this->getQueryForChildDescendants($parent, $child);
+        $parentAncestorQ  = $this->getQueryForParentAncestors($parent, $child);
 
-        // Select all nodes that descend from $child...
-        $childDescendantQ = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
-        // ...that aren't already descendants of $parent
-        $childDescendantQ->whereNotIn($child->getDescendantKeyName(), function($q) use ($parent)
-        {
-            $q->select($parent->getDescendantKeyName())->from($this->getTable())
-                ->where($parent->getAncestorKeyName(), $parent->getKey());
-        });
-
-        $childDescendantQ->selectRaw('? as ' . $grammar->wrap($parent->getAncestorKeyName()), [$parent->getKey()]);
-        $childDescendantQ->addSelect($child->getDescendantKeyName());
-
-        // Select all nodes that are ancestors of $parent...
-        $parentAncestorQ = $this->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
-        // ...that aren't already ancestors of $child
-        $parentAncestorQ->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child)
-        {
-            $q->select($child->getAncestorKeyName())->from($this->getTable())
-                ->where($child->getDescendantKeyName(), $child->getKey());
-        });
-
-        $parentAncestorQ->addSelect($parent->getAncestorKeyName());
-        $parentAncestorQ->selectRaw('? as ' . $grammar->wrap($child->getDescendantKeyName()), [$child->getKey()]);
-
-        $fullSelect = $joinedNodes->unionAll($childDescendantQ)->unionAll($parentAncestorQ);
+        $fullSelect = $joinedNodesQ->unionAll($childDescendantQ)->unionAll($parentAncestorQ);
 
         // Insert into table...
         // ... (columns) ...
