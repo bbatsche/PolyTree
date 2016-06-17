@@ -2,9 +2,7 @@
 
 namespace BeBat\PolyTree\Test;
 
-use BeBat\PolyTree\Traits\Node as NodeTrait;
-use BeBat\PolyTree\Contracts\Node as NodeInterface;
-use Illuminate\Database\Eloquent\Model as BaseModel;
+use BeBat\PolyTree\Model as BaseModel;
 use PHPUnit_Framework_TestCase as TestCase;
 
 class NodeTest extends TestCase
@@ -13,13 +11,13 @@ class NodeTest extends TestCase
 
     protected function setUp()
     {
-        $this->model = new TestModel();
+        $this->model = new NodeTestModel();
     }
 
     public function testTableNames()
     {
-        verify('generates a relation table name',  $this->model->getRelationsTable())->equals('test_model_relations');
-        verify('generates an ancestry table name', $this->model->getAncestryTable())->equals('test_model_ancestry');
+        verify('generates a relation table name',  $this->model->getRelationsTable())->equals('node_test_model_relations');
+        verify('generates an ancestry table name', $this->model->getAncestryTable())->equals('node_test_model_ancestry');
 
         $this->model->setRelationsTable('overriden_relations');
         $this->model->setAncestryTable('overriden_ancestry');
@@ -30,10 +28,10 @@ class NodeTest extends TestCase
 
     public function testColumNames()
     {
-        verify('generates parent key name',     $this->model->getParentKeyname())->equals('parent_test_model_id');
-        verify('generates child key name',      $this->model->getChildKeyName())->equals('child_test_model_id');
-        verify('generates ancestor key name',   $this->model->getAncestorKeyName())->equals('ancestor_test_model_id');
-        verify('generates descendant key name', $this->model->getDescendantKeyName())->equals('descendant_test_model_id');
+        verify('generates parent key name',     $this->model->getParentKeyname())->equals('parent_node_test_model_id');
+        verify('generates child key name',      $this->model->getChildKeyName())->equals('child_node_test_model_id');
+        verify('generates ancestor key name',   $this->model->getAncestorKeyName())->equals('ancestor_node_test_model_id');
+        verify('generates descendant key name', $this->model->getDescendantKeyName())->equals('descendant_node_test_model_id');
 
         $this->model->setParentKeyName('overriden_parent_id');
         $this->model->setChildKeyName('overriden_child_id');
@@ -54,3 +52,5 @@ class NodeTest extends TestCase
         verify($this->model->hasDescendants())->isInstanceOf('BeBat\PolyTree\Relations\HasDescendants');
     }
 }
+
+class NodeTestModel extends BaseModel {}
