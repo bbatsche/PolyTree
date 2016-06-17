@@ -6,9 +6,11 @@ use BeBat\PolyTree\Test\TestModel;
 use BeBat\PolyTree\Relations\Indirect as IndirectBase;
 use BeBat\PolyTree\Test\ArrayDataSet;
 
-class IndirectAttachTest extends TestCase
+class IndirectTest extends TestCase
 {
     protected $nodes;
+
+    protected $orderBy = ['ancestor_id', 'descendant_id'];
 
     public function getDataSet()
     {
@@ -361,20 +363,20 @@ class IndirectAttachTest extends TestCase
     }
 
 
-    protected function compareRows(array $a, array $b)
+    protected function compareRows(array $a, array $b, $colNum = 0)
     {
-        if ($a['ancestor_id'] < $b['ancestor_id']) {
+        if (!isset($this->orderBy[$colNum])) {
+            return 0;
+        }
+
+        $column = $this->orderBy[$colNum];
+
+        if ($a[$column] < $b[$column]) {
             return -1;
-        } elseif ($a['ancestor_id'] > $b['ancestor_id']) {
+        } elseif ($a[$column] > $b[$column]) {
             return 1;
         } else {
-            if ($a['descendant_id'] < $b['descendant_id']) {
-                return -1;
-            } elseif ($a['descendant_id'] > $b['descendant_id']) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return $this->compareRows($a, $b, $colNum + 1);
         }
     }
 
@@ -391,9 +393,7 @@ class IndirectAttachTest extends TestCase
 
         $expected = $this->createTableFromArray('ancestry', $rows);
 
-        $actual = $this->getActualTableValues(
-            'ancestry', ['ancestor_id', 'descendant_id']
-        );
+        $actual = $this->getActualTableValues('ancestry', $this->orderBy);
 
         $this->assertTablesEqual($expected, $actual);
     }
