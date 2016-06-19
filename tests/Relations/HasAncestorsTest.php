@@ -40,10 +40,11 @@ class HasAncestorsTest extends TestCase
             ->andReturn($this->zeroCount)->byDefault();
 
         // Mock newPivotStatementForId in SUT so we can control whether this node already has an ancestor
-        $relationMock = 'BeBat\PolyTree\Relations\HasAncestors[newPivotStatementForId]';
+        $relationMock = 'BeBat\PolyTree\Relations\HasAncestors[newPivotStatementForId,attachAncestry]';
         $this->relation = Mockery::mock($relationMock, [$this->childNode]);
 
         $this->relation->shouldReceive('newPivotStatementForId')->andReturn($this->zeroCount)->byDefault();
+        $this->relation->shouldNotReceive('attachAncestry');
     }
 
     public function tearDown()
@@ -58,7 +59,7 @@ class HasAncestorsTest extends TestCase
         verify('other key is ancestor',     $this->relation->getOtherKey())->endsWith('.ancestor_key_name');
     }
 
-    public function testThrowsCycleException()
+    public function testAttachThrowsCycleException()
     {
         $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId')->andReturn($this->oneCount)->once();
 
@@ -67,7 +68,7 @@ class HasAncestorsTest extends TestCase
         $this->relation->attach($this->parentNode);
     }
 
-    public function testDoesNothingForExistingAncestor()
+    public function testAttachDoesNothingForExistingAncestor()
     {
         $this->relation->shouldReceive('newPivotStatementForId')->andReturn($this->oneCount)->once();
 
