@@ -6,7 +6,6 @@ Manager::schema()->create('nodes', function ($table)
 {
     $table->increments('id');
     $table->string('value');
-    $table->timestamps();
 });
 
 Manager::schema()->create('relations', function ($table)
