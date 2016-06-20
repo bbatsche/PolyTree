@@ -12,7 +12,7 @@ env:
 sudo: false
 
 before_install:
-  - composer require illuminate/database={$LARAVEL_VERSION}.*
+  - composer require illuminate/database=${LARAVEL_VERSION}.*
 
 install:
   - travis_retry composer install --no-interaction --prefer-dist
