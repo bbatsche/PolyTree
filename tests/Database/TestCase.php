@@ -24,6 +24,8 @@ abstract class TestCase extends TestCaseBase
 
     public function getConnection()
     {
+        Manager::connection()->setFetchMode(\PDO::FETCH_NUM);
+
         $pdo = Manager::getPdo();
         return $this->createDefaultDBConnection($pdo, ':memory:');
     }
