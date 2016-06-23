@@ -154,7 +154,7 @@ abstract class Indirect extends BelongsToMany
      * @param \BeBat\PolyTree\Contracst\Node $child
      * @return \Illuminate\Database\Query\Builder
      */
-    public function getQueryForChildDescendants(Node $parent, Node $child)
+    public function getQueryForParentDescendants(Node $parent, Node $child)
     {
         // Select all nodes that descend from $child...
         $query = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
@@ -178,7 +178,7 @@ abstract class Indirect extends BelongsToMany
      * @param \BeBat\PolyTree\Contracst\Node $child
      * @return \Illuminate\Database\Query\Builder
      */
-    public function getQueryForParentAncestors(Node $parent, Node $child)
+    public function getQueryForChildAncestors(Node $parent, Node $child)
     {
         // Select all nodes that are ancestors of $parent...
         $query = $this->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
@@ -212,11 +212,11 @@ abstract class Indirect extends BelongsToMany
 
         $grammar = $this->getBaseQuery()->getGrammar();
 
-        $joinedNodesQ     = $this->getQueryForJoinedNodes($parent, $child);
-        $childDescendantQ = $this->getQueryForChildDescendants($parent, $child);
-        $parentAncestorQ  = $this->getQueryForParentAncestors($parent, $child);
+        $joinedNodesQ      = $this->getQueryForJoinedNodes($parent, $child);
+        $parentDescendantQ = $this->getQueryForParentDescendants($parent, $child);
+        $childAncestorQ    = $this->getQueryForChildAncestors($parent, $child);
 
-        $fullSelect = $joinedNodesQ->unionAll($childDescendantQ)->unionAll($parentAncestorQ);
+        $fullSelect = $joinedNodesQ->unionAll($parentDescendantQ)->unionAll($childAncestorQ);
 
         // Insert into table...
         // ... (columns) ...

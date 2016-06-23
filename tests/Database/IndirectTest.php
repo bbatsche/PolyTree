@@ -382,12 +382,12 @@ class IndirectTest extends TestCase
         array $expParentDescendants
     ) {
         $actualJoinedIds        = $this->relation->getQueryForJoinedNodes($parent, $child)->get();
-        $actualParentAncestors  = $this->relation->getQueryForParentAncestors($parent, $child)->get();
-        $actualChildDescendants = $this->relation->getQueryForChildDescendants($parent, $child)->get();
+        $actualChildAncestors  = $this->relation->getQueryForChildAncestors($parent, $child)->get();
+        $actualParentDescendants = $this->relation->getQueryForParentDescendants($parent, $child)->get();
 
         verify('joined IDs',                  $actualJoinedIds)->withoutOrder()->equals($expJoined);
-        verify("IDs for parent's ancestors",  $actualParentAncestors)->withoutOrder()->equals($expChildAncestors);
-        verify("IDs for child's descendants", $actualChildDescendants)->withoutOrder()->equals($expParentDescendants);
+        verify("IDs for parent's ancestors",  $actualChildAncestors)->withoutOrder()->equals($expChildAncestors);
+        verify("IDs for child's descendants", $actualParentDescendants)->withoutOrder()->equals($expParentDescendants);
     }
 }
 
