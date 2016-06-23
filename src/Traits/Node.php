@@ -189,16 +189,6 @@ trait Node
     }
 
     /**
-     * Define a relationship to this node's child nodes.
-     *
-     * @return \BeBat\PolyTree\Relations\HasChildren
-     */
-    public function hasChildren()
-    {
-        return new HasChildren($this);
-    }
-
-    /**
      * Define a relationship to this node's parent nodes.
      *
      * @return \BeBat\PolyTree\Relations\HasParents
@@ -209,13 +199,13 @@ trait Node
     }
 
     /**
-     * Define a relationship to this node's descendant nodes.
+     * Define a relationship to this node's child nodes.
      *
-     * @return \BeBat\PolyTree\Relations\HasDescendants
+     * @return \BeBat\PolyTree\Relations\HasChildren
      */
-    public function hasDescendants()
+    public function hasChildren()
     {
-        return new HasDescendants($this);
+        return new HasChildren($this);
     }
 
     /**
@@ -226,5 +216,15 @@ trait Node
     public function hasAncestors()
     {
         return new HasAncestors($this);
+    }
+
+    /**
+     * Define a relationship to this node's descendant nodes.
+     *
+     * @return \BeBat\PolyTree\Relations\HasDescendants
+     */
+    public function hasDescendants()
+    {
+        return new HasDescendants($this);
     }
 }

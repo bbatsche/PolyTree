@@ -43,16 +43,6 @@ abstract class Model extends Eloquent implements NodeInterface
     }
 
     /**
-     * Define a relationship to this node's descendant nodes.
-     *
-     * @return \BeBat\PolyTree\Relations\HasDescendants
-     */
-    public function descendants()
-    {
-        return $this->hasDescendants();
-    }
-
-    /**
      * Define a relationship to this node's ancestor nodes.
      *
      * @return \BeBat\PolyTree\Relations\HasAncestors
@@ -60,5 +50,15 @@ abstract class Model extends Eloquent implements NodeInterface
     public function ancestors()
     {
         return $this->hasAncestors();
+    }
+
+    /**
+     * Define a relationship to this node's descendant nodes.
+     *
+     * @return \BeBat\PolyTree\Relations\HasDescendants
+     */
+    public function descendants()
+    {
+        return $this->hasDescendants();
     }
 }
