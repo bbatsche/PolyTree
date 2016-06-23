@@ -223,12 +223,10 @@ abstract class Indirect extends BelongsToMany
         // ... union'd select statements
         $insertSql = 'INSERT INTO ' . $grammar->wrapTable($this->getTable()) .
             ' (' . $grammar->columnize([$parent->getAncestorKeyName(), $child->getDescendantKeyName()]) . ') ' .
-                $fullSelect->toSql();
+            $fullSelect->toSql();
 
         $insert = $this->newPivotStatement()->raw($insertSql);
 
         $this->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
-
-        return true;
     }
 }
