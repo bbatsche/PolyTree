@@ -4,13 +4,31 @@ namespace BeBat\PolyTree\Relations;
 
 use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Exceptions\LockedRelationship;
-
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
+/**
+ * Indirect Relations
+ *
+ * Shared functionality for ancestor and descendant relations.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Relations
+ * @author Ben Batschelet <ben.batschelet@gmail.com>
+ * @copyright 2016 Ben Batschelet
+ * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
+ */
 abstract class Indirect extends BelongsToMany
 {
+    /** @var bool By default, do not allow this relationship to be modified in any way. */
     protected $locked = true;
 
+    /**
+     * Create a new indirect relationship instance.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $node
+     * @param string $foreignKey Column name that points back to this node.
+     * @param string $otherKey   Column name that points to the other nodes in this relationship.
+     */
     public function __construct(Node $node, $foreignKey, $otherKey)
     {
         $table = $node->getAncestryTable();
@@ -19,6 +37,11 @@ abstract class Indirect extends BelongsToMany
         parent::__construct($query, $node, $table, $foreignKey, $otherKey);
     }
 
+    /**
+     * Unlock this relationship and allow it to be modified.
+     *
+     * @return self
+     */
     public function unlock()
     {
         $this->locked = false;
@@ -26,6 +49,11 @@ abstract class Indirect extends BelongsToMany
         return $this;
     }
 
+    /**
+     * Lock this relationship and prevent any modifications.
+     *
+     * @return self
+     */
     public function lock()
     {
         $this->locked = true;
@@ -33,11 +61,27 @@ abstract class Indirect extends BelongsToMany
         return $this;
     }
 
+    /**
+     * Is the relationship currently locked?
+     *
+     * @return bool
+     */
     public function isLocked()
     {
         return $this->locked;
     }
 
+    /**
+     * Add a node to the indirect ancestry
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $node
+     * @param array $attributes
+     * @param bool $touch
+     *
+     * @return void
+     */
     public function attach($node, array $attributes = [], $touch = true)
     {
         if ($this->isLocked()) {
@@ -47,6 +91,16 @@ abstract class Indirect extends BelongsToMany
         return parent::attach($node);
     }
 
+    /**
+     * Remove a node from the indirect ancestry.
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
+     *
+     * @param int|array $ids
+     * @param bool $touch
+     *
+     * @return int Number of nodes detatched
+     */
     public function detach($ids = [], $touch = true)
     {
         if ($this->isLocked()) {
@@ -56,6 +110,13 @@ abstract class Indirect extends BelongsToMany
         return parent::detach($id, $touch);
     }
 
+    /**
+     * Generate a query builder object that joins the ancestor ids of $parent with the descendant ids of $child
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function getQueryForJoinedNodes(Node $parent, Node $child)
     {
         $query = $this->newPivotStatement()
@@ -86,6 +147,13 @@ abstract class Indirect extends BelongsToMany
         return $query;
     }
 
+    /**
+     * Generate a query that joins the id of $parent with the descendant ids of $child.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function getQueryForChildDescendants(Node $parent, Node $child)
     {
         // Select all nodes that descend from $child...
@@ -103,6 +171,13 @@ abstract class Indirect extends BelongsToMany
         return $query;
     }
 
+    /**
+     * Generate a query that joins the id of $child with the ancestor ids of $parent
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @return \Illuminate\Database\Query\Builder
+     */
     public function getQueryForParentAncestors(Node $parent, Node $child)
     {
         // Select all nodes that are ancestors of $parent...
@@ -120,6 +195,15 @@ abstract class Indirect extends BelongsToMany
         return $query;
     }
 
+    /**
+     * Merge the ancestors of $parent and descendants of $child
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @return void
+     */
     public function attachAncestry(Node $parent, Node $child)
     {
         if ($this->isLocked()) {
