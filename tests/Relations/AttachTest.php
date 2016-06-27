@@ -152,6 +152,62 @@ class AttachTest extends TestCase
         verify($relation->attach('scalar_value'))->isEmpty();
     }
 
+    public function nodeCollectionProvider()
+    {
+        return [
+            'array of nodes' => [[new TestModel(['id' => 1]), new TestModel(['id' => 2])]],
+            'Laravel collection' => [collect([new TestModel(['id' => 1]), new TestModel(['id' => 2])])]
+        ];
+    }
+
+    /**
+     * @dataProvider nodeCollectionProvider
+     */
+    public function testHasParentsAttachForMultiple($nodes)
+    {
+        // Once for the collection as a whole, and then once for each node
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->times(3);
+
+        $this->directRel->shouldReceive('attach')->with($nodes[0], Mockery::any(), Mockery::any())->once();
+        $this->directRel->shouldReceive('attach')->with($nodes[1], Mockery::any(), Mockery::any())->once();
+
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->twice();
+
+        $this->directAncestry->shouldReceive('attach')->with($nodes[0])->once();
+        $this->directAncestry->shouldReceive('attach')->with($nodes[1])->once();
+
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->twice();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->times(3);
+
+        $relation = new HasParents($this->childNode);
+
+        verify($relation->attach($nodes))->isEmpty();
+    }
+
+    /**
+     * @dataProvider nodeCollectionProvider
+     */
+    public function testHasChildrenAttachForMultiple($nodes)
+    {
+        // Once for the collection as a whole, and then once for each node
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->times(3);
+
+        $this->directRel->shouldReceive('attach')->with($nodes[0], Mockery::any(), Mockery::any())->once();
+        $this->directRel->shouldReceive('attach')->with($nodes[1], Mockery::any(), Mockery::any())->once();
+
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->twice();
+
+        $this->directAncestry->shouldReceive('attach')->with($nodes[0])->once();
+        $this->directAncestry->shouldReceive('attach')->with($nodes[1])->once();
+
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->twice();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->times(3);
+
+        $relation = new HasChildren($this->parentNode);
+
+        verify($relation->attach($nodes))->isEmpty();
+    }
+
     public function testHasAncestorsAttach()
     {
         $this->indirectRel->shouldReceive('attachAncestry')

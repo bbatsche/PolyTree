@@ -46,6 +46,16 @@ class HasParents extends Direct
 
         $connection->beginTransaction();
 
+        if (is_array($parent) || $parent instanceof \Traversable) {
+            foreach ($parent as $node) {
+                $this->attach($node, $attributes, $touch);
+            }
+
+            $connection->commit();
+
+            return;
+        }
+
         if (!$parent instanceof Node) {
             $parent = $this->parent->replicate()->setAttribute($this->parent->getKeyName(), $parent)->syncOriginal();
         }

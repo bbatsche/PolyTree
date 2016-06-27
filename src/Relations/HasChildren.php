@@ -45,6 +45,16 @@ class HasChildren extends Direct
 
         $connection->beginTransaction();
 
+        if (is_array($child) || $child instanceof \Traversable) {
+            foreach ($child as $node) {
+                $this->attach($node, $attributes, $touch);
+            }
+
+            $connection->commit();
+
+            return;
+        }
+
         if (!$child instanceof Node) {
             $child = $this->parent->replicate()->setAttribute($this->parent->getKeyName(), $child)->syncOriginal();
         }
