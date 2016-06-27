@@ -2,10 +2,12 @@
 
 namespace BeBat\PolyTree\Test\Relations;
 
+use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Relations\HasParents;
 use BeBat\PolyTree\Relations\HasChildren;
 use BeBat\PolyTree\Relations\HasAncestors;
 use BeBat\PolyTree\Relations\HasDescendants;
+use BeBat\PolyTree\Test\TestModel;
 use Mockery;
 use PHPUnit_Framework_TestCase as TestCase;
 
@@ -31,8 +33,8 @@ class AttachTest extends TestCase
     {
         $this->directRel       = Mockery::mock('overload:BeBat\PolyTree\Relations\Direct');
         $this->indirectRel     = Mockery::mock('overload:BeBat\PolyTree\Relations\Indirect');
-        $this->parentNode      = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
-        $this->childNode       = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+        $this->parentNode      = new TestModel();
+        $this->childNode       = new TestModel();
         $this->mockConnection  = Mockery::mock('Illuminate\Database\ConnectionInterface');
         $this->directAncestry    = Mockery::mock('IndirectRelation');
 
@@ -40,11 +42,6 @@ class AttachTest extends TestCase
         $this->directRel->shouldReceive('getParent->hasAncestors')->andReturn($this->directAncestry);
         $this->directRel->shouldReceive('getParent->hasDescendants')->andReturn($this->directAncestry);
 
-        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
-        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
-
-        $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
-        $this->childNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
         $this->indirectRel->shouldReceive('newPivotStatementForId->count')->andReturn(0);
     }
 
@@ -101,8 +98,61 @@ class AttachTest extends TestCase
         verify($relation->attach($this->childNode, ['attr' => 'value'], 'doTouch'))->isEmpty();
     }
 
+    public function testHasParentsAttachForId()
+    {
+        $validateAttachArgs = function ($node)
+        {
+            return $node instanceof Node && $node->getKey() == 'scalar_value';
+        };
+
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
+        $this->directRel->shouldReceive('attach')
+            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('attach')
+            ->with(Mockery::on($validateAttachArgs))->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
+
+        $relation = new HasParents($this->childNode);
+        $relation->parent = $this->childNode;
+
+        verify($relation->attach('scalar_value'))->isEmpty();
+    }
+
+    public function testHasChildrenAttachForId()
+    {
+        $validateAttachArgs = function ($node)
+        {
+            return $node instanceof Node && $node->getKey() == 'scalar_value';
+        };
+
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
+        $this->directRel->shouldReceive('attach')
+            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('attach')
+            ->with(Mockery::on($validateAttachArgs))->once()->globally()->ordered();
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
+
+        $relation = new HasChildren($this->parentNode);
+        $relation->parent = $this->parentNode;
+
+        verify($relation->attach('scalar_value'))->isEmpty();
+    }
+
     public function testHasAncestorsAttach()
     {
+        $this->parentNode      = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+        $this->childNode       = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+
+        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
+        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
+
+        $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
+        $this->childNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
+
         $this->indirectRel->shouldReceive('attachAncestry')->with($this->parentNode, $this->childNode)->ordered();
         $this->indirectRel->shouldReceive('attach')->with($this->parentNode)->ordered();
 
@@ -114,6 +164,15 @@ class AttachTest extends TestCase
 
     public function testHasDescendantsAttach()
     {
+        $this->parentNode      = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+        $this->childNode       = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+
+        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
+        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
+
+        $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
+        $this->childNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
+
         $this->indirectRel->shouldReceive('attachAncestry')->with($this->parentNode, $this->childNode)->ordered();
         $this->indirectRel->shouldReceive('attach')->with($this->childNode)->ordered();
 

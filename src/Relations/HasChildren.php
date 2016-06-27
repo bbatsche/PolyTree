@@ -41,13 +41,13 @@ class HasChildren extends Direct
      */
     public function attach($child, array $attributes = [], $touch = true)
     {
-        if (!$child instanceof Node) {
-            throw new \Exception("We're not quite ready to deal with this situation yet");
-        }
-
         $connection = $this->getBaseQuery()->getConnection();
 
         $connection->beginTransaction();
+
+        if (!$child instanceof Node) {
+            $child = $this->parent->replicate()->setAttribute($this->parent->getKeyName(), $child)->syncOriginal();
+        }
 
         parent::attach($child, $attributes, $touch);
 

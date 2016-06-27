@@ -16,4 +16,6 @@ class TestModel extends PolyTreeModel
     protected $descendantKey = 'descendant_id';
 
     protected $guarded = [];
+
+    public $incrementing = false;
 }
