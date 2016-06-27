@@ -60,13 +60,13 @@ class HasParents extends Direct
             $parent = $this->parent->replicate()->setAttribute($this->parent->getKeyName(), $parent)->syncOriginal();
         }
 
-        parent::attach($parent, $attributes, $touch);
-
         $ancestors = $this->getParent()->hasAncestors();
 
         $ancestors->unlock();
         $ancestors->attach($parent);
         $ancestors->lock();
+
+        parent::attach($parent, $attributes, $touch);
 
         $connection->commit();
     }

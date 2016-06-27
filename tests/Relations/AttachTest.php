@@ -64,17 +64,17 @@ class AttachTest extends TestCase
     {
         // Order here is absolutely key
         // 1. Begin a transaction
-        // 2. Attach the direct relationship
-        // 3. Unlock the ancestry
-        // 4. Attach the ancestry relationship
-        // 5. Lock the ancestry
+        // 2. Unlock the ancestry
+        // 3. Attach the indirect relationship
+        // 4. Lock the ancestry
+        // 5. Attach the direct relationship
         // 6. Commit all our changes in the DB
         $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
-        $this->directRel->shouldReceive('attach')
-            ->with($this->parentNode, ['attr' => 'value'], 'doTouch')->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('attach')->with($this->parentNode)->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
+        $this->directRel->shouldReceive('attach')
+            ->with($this->parentNode, ['attr' => 'value'], 'doTouch')->once()->globally()->ordered();
         $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
 
         $relation = new HasParents($this->childNode);
@@ -88,17 +88,17 @@ class AttachTest extends TestCase
     {
         // Order here is absolutely key
         // 1. Begin a transaction
-        // 2. Attach the direct relationship
-        // 3. Unlock the ancestry
-        // 4. Attach the ancestry relationship
-        // 5. Lock the ancestry
+        // 2. Unlock the ancestry
+        // 3. Attach the indirect relationship
+        // 4. Lock the ancestry
+        // 5. Attach the direct relationship
         // 6. Commit all our changes in the DB
         $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
-        $this->directRel->shouldReceive('attach')
-            ->with($this->childNode, ['attr' => 'value'], 'doTouch')->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('attach')->with($this->childNode)->once()->globally()->ordered();
         $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
+        $this->directRel->shouldReceive('attach')
+            ->with($this->childNode, ['attr' => 'value'], 'doTouch')->once()->globally()->ordered();
         $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
 
         $relation = new HasChildren($this->parentNode);
@@ -115,14 +115,13 @@ class AttachTest extends TestCase
             return $node instanceof Node && $node->getKey() == 'scalar_value';
         };
 
-        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once();
         $this->directRel->shouldReceive('attach')
-            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('attach')
-            ->with(Mockery::on($validateAttachArgs))->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
-        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
+            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once();
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once();
+        $this->directAncestry->shouldReceive('attach')->with(Mockery::on($validateAttachArgs))->once();
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once();
 
         $relation = new HasParents($this->childNode);
         $relation->parent = $this->childNode;
@@ -137,14 +136,13 @@ class AttachTest extends TestCase
             return $node instanceof Node && $node->getKey() == 'scalar_value';
         };
 
-        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once()->globally()->ordered();
+        $this->mockConnection->shouldReceive('beginTransaction')->withNoArgs()->once();
         $this->directRel->shouldReceive('attach')
-            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('attach')
-            ->with(Mockery::on($validateAttachArgs))->once()->globally()->ordered();
-        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once()->globally()->ordered();
-        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once()->globally()->ordered();
+            ->with(Mockery::on($validateAttachArgs), Mockery::any(), Mockery::any())->once();
+        $this->directAncestry->shouldReceive('unlock')->withNoArgs()->once();
+        $this->directAncestry->shouldReceive('attach')->with(Mockery::on($validateAttachArgs))->once();
+        $this->directAncestry->shouldReceive('lock')->withNoArgs()->once();
+        $this->mockConnection->shouldReceive('commit')->withNoArgs()->once();
 
         $relation = new HasChildren($this->parentNode);
         $relation->parent = $this->parentNode;
