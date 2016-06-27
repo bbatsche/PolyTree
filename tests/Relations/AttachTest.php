@@ -25,18 +25,28 @@ class AttachTest extends TestCase
     protected $parentNode;
     protected $childNode;
 
+    protected $mockNode;
+
     protected $mockConnection;
 
     protected $directAncestry;
 
     public function setUp()
     {
-        $this->directRel       = Mockery::mock('overload:BeBat\PolyTree\Relations\Direct');
-        $this->indirectRel     = Mockery::mock('overload:BeBat\PolyTree\Relations\Indirect');
-        $this->parentNode      = new TestModel();
-        $this->childNode       = new TestModel();
-        $this->mockConnection  = Mockery::mock('Illuminate\Database\ConnectionInterface');
-        $this->directAncestry    = Mockery::mock('IndirectRelation');
+        $this->directRel      = Mockery::mock('overload:BeBat\PolyTree\Relations\Direct');
+        $this->indirectRel    = Mockery::mock('overload:BeBat\PolyTree\Relations\Indirect');
+
+        $this->parentNode     = new TestModel(['id' => 'parent_key']);
+        $this->childNode      = new TestModel(['id' => 'child_key']);
+
+        $this->mockConnection = Mockery::mock('Illuminate\Database\ConnectionInterface');
+        $this->directAncestry = Mockery::mock('IndirectRelation');
+
+        $this->mockNode = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
+        $this->mockNode->shouldReceive('getKey')->andReturn('mock_key');
+
+        $this->mockNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
+        $this->mockNode->shouldReceive('hasDescendants->newPivotStatementForId->count')->andReturn(0);
 
         $this->directRel->shouldReceive('getBaseQuery->getConnection')->andReturn($this->mockConnection);
         $this->directRel->shouldReceive('getParent->hasAncestors')->andReturn($this->directAncestry);
@@ -144,41 +154,25 @@ class AttachTest extends TestCase
 
     public function testHasAncestorsAttach()
     {
-        $this->parentNode      = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
-        $this->childNode       = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
-
-        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
-        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
-
-        $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
-        $this->childNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
-
-        $this->indirectRel->shouldReceive('attachAncestry')->with($this->parentNode, $this->childNode)->ordered();
-        $this->indirectRel->shouldReceive('attach')->with($this->parentNode)->ordered();
+        $this->indirectRel->shouldReceive('attachAncestry')
+            ->with($this->mockNode, $this->childNode)->once()->ordered();
+        $this->indirectRel->shouldReceive('attach')->with($this->mockNode)->once()->ordered();
 
         $relation = new HasAncestors($this->childNode);
         $relation->parent = $this->childNode; // Normally done via Indirect constructor
 
-        verify($relation->attach($this->parentNode))->isEmpty();
+        verify($relation->attach($this->mockNode))->isEmpty();
     }
 
     public function testHasDescendantsAttach()
     {
-        $this->parentNode      = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
-        $this->childNode       = Mockery::mock('BeBat\PolyTree\Model')->makePartial();
-
-        $this->parentNode->shouldReceive('getKey')->andReturn('parent_key');
-        $this->childNode->shouldReceive('getKey')->andReturn('child_key');
-
-        $this->parentNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
-        $this->childNode->shouldReceive('hasAncestors->newPivotStatementForId->count')->andReturn(0);
-
-        $this->indirectRel->shouldReceive('attachAncestry')->with($this->parentNode, $this->childNode)->ordered();
-        $this->indirectRel->shouldReceive('attach')->with($this->childNode)->ordered();
+        $this->indirectRel->shouldReceive('attachAncestry')
+            ->with($this->parentNode, $this->mockNode)->once()->ordered();
+        $this->indirectRel->shouldReceive('attach')->with($this->mockNode)->once()->ordered();
 
         $relation = new HasDescendants($this->parentNode);
         $relation->parent = $this->parentNode; // Normally done via Indirect constructor
 
-        verify($relation->attach($this->childNode))->isEmpty();
+        verify($relation->attach($this->mockNode))->isEmpty();
     }
 }
