@@ -32,7 +32,7 @@ class HasDescendants extends Indirect
     }
 
     /**
-     * Attach a descendant node
+     * Attach a descendant node.
      *
      * @throws \BeBat\PolyTree\Exceptions\CycleException if $child is an existing ancestor of this node.
      *

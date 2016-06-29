@@ -36,7 +36,7 @@ class HasChildren extends Direct
      *
      * @param \BeBat\PolyTree\Contracts\Node $child
      * @param array $attributes
-     * @param string $touch
+     * @param bool $touch
      * @return void
      */
     public function attach($child, array $attributes = [], $touch = true)
