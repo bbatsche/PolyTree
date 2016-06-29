@@ -78,7 +78,7 @@ abstract class Indirect extends BelongsToMany
      *
      * @param \BeBat\PolyTree\Contracts\Node $node
      * @param array $attributes
-     * @param bool $touch
+     * @param bool  $touch
      *
      * @return void
      */
@@ -97,9 +97,9 @@ abstract class Indirect extends BelongsToMany
      * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param int|array $ids
-     * @param bool $touch
+     * @param bool      $touch
      *
-     * @return int Number of nodes detatched
+     * @return int Number of nodes detached
      */
     public function detach($ids = [], $touch = true)
     {
@@ -115,6 +115,7 @@ abstract class Indirect extends BelongsToMany
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
      * @param \BeBat\PolyTree\Contracts\Node $child
+     *
      * @return \Illuminate\Database\Query\Builder
      */
     public function getQueryForJoinedNodes(Node $parent, Node $child)
@@ -151,7 +152,8 @@ abstract class Indirect extends BelongsToMany
      * Generate a query that joins the id of $parent with the descendant ids of $child.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     *
      * @return \Illuminate\Database\Query\Builder
      */
     public function getQueryForParentDescendants(Node $parent, Node $child)
@@ -175,7 +177,8 @@ abstract class Indirect extends BelongsToMany
      * Generate a query that joins the id of $child with the ancestor ids of $parent
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     *
      * @return \Illuminate\Database\Query\Builder
      */
     public function getQueryForChildAncestors(Node $parent, Node $child)
@@ -201,7 +204,8 @@ abstract class Indirect extends BelongsToMany
      * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param \BeBat\PolyTree\Contracst\Node $child
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     *
      * @return void
      */
     public function attachAncestry(Node $parent, Node $child)
