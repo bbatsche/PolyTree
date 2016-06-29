@@ -5,6 +5,7 @@ namespace BeBat\PolyTree\Relations;
 use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Exceptions\LockedRelationship;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Query\Builder;
 
 /**
  * Indirect Relations
@@ -232,5 +233,117 @@ abstract class Indirect extends BelongsToMany
         $insert = $this->newPivotStatement()->raw($insertSql);
 
         $this->getBaseQuery()->useWritePdo()->getConnection()->statement($insert, $fullSelect->getBindings());
+    }
+
+    /**
+     * Appends a condition to $query for finding nodes that are either
+     * descendants of $parent or descendants of $parent's ancestors
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param \BeBat\PolyTree\Contracts\Node     $parent
+     *
+     * @return void
+     */
+    public function appendParentAncestorCondition(Builder $query, Node $parent)
+    {
+        $query->where(function($parentQ) use ($parent)
+        {
+            $parentQ->orWhere($parent->getAncestorKeyName(), $parent->getKey());
+            $parentQ->orWhereIn($parent->getAncestorKeyName(), function($ancestorQ) use ($parent)
+            {
+                $ancestorQ->select($parent->getAncestorKeyName())->from($this->getTable())
+                    ->where($parent->getDescendantKeyName(), $parent->getKey());
+            });
+        });
+    }
+
+    /**
+     * Appends a condition to $query for finding nodes that are either
+     * ancestors of $child or ancestors of $child's descendants
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param \BeBat\PolyTree\Contracts\Node     $child
+     *
+     * @return void
+     */
+    public function appendChildDescendantCondition(Builder $query, Node $child)
+    {
+        $query->where(function($childQ) use ($child)
+        {
+            $childQ->orWhere($child->getDescendantKeyName(), $child->getKey());
+            $childQ->orWhereIn($child->getDescendantKeyName(), function($descendantQ) use ($child)
+            {
+                $descendantQ->select($child->getDescendantKeyName())->from($this->getTable())
+                    ->where($child->getAncestorKeyName(), $child->getKey());
+            });
+        });
+    }
+
+    /**
+     * Appends a condition to $query for filtering out nodes that are either
+     * $parent's direct children or descendants of those children.
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param \BeBat\PolyTree\Contracts\Node     $parent
+     *
+     * @return void
+     */
+    public function appendParentsChildrenNegation(Builder $query, Node $parent)
+    {
+        $parentsChildrenQ = $parent->hasChildren()->getBaseQuery()->select($parent->getKeyName());
+
+        $query->whereNotIn($parent->getDescendantKeyName(), $parentsChildrenQ);
+        $query->whereNotIn($parent->getDescendantKeyName(), function($childDescendantQ) use ($parent, $parentsChildrenQ)
+        {
+            $childDescendantQ->select($parent->getDescendantKeyName())->from($this->getTable())
+                ->whereIn($parent->getAncestorKeyName(), $parentsChildrenQ);
+        });
+    }
+
+    /**
+     * Appends a condition to $query for filtering out nodes that are either
+     * $child's direct parents or ancestors of those parents.
+     *
+     * @param \Illuminate\Database\Query\Builder $query
+     * @param \BeBat\PolyTree\Contracts\Node     $child
+     *
+     * @return void
+     */
+    public function appendChildsParentsNegation(Builder $query, Node $child)
+    {
+        $childsParentsQ = $child->hasParents()->getBaseQuery()->select($child->getKeyName());
+
+        $query->whereNotIn($child->getAncestorKeyName(), $childsParentsQ);
+        $query->whereNotIn($child->getAncestorKeyName(), function($parentAncestorQ) use ($child, $childsParentsQ)
+        {
+            $parentAncestorQ->select($child->getAncestorKeyName())->from($this->getTable())
+                ->whereIn($child->getDescendantKeyName(), $childsParentsQ);
+        });
+    }
+
+    /**
+     * Remove $parent's ancestors from $child, and $child's descendants from $parent
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     *
+     * @return int Number of rows deleted
+     */
+    public function detachAncestry(Node $parent, Node $child)
+    {
+        if ($this->isLocked()) {
+            throw new LockedRelationship();
+        }
+
+        $delQuery = $this->newPivotStatement();
+
+        $this->appendParentAncestorCondition($delQuery, $parent);
+        $this->appendChildDescendantCondition($delQuery, $child);
+        $this->appendParentsChildrenNegation($delQuery, $parent);
+        $this->appendChildsParentsNegation($delQuery, $child);
+
+        return $delQuery->delete();
     }
 }
