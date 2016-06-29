@@ -69,4 +69,51 @@ class HasChildren extends Direct
 
         $connection->commit();
     }
+
+    /**
+     * Detach a child node.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $child
+     * @param bool $touch
+     *
+     * @return int The number of records deleted.
+     */
+    public function detach($child = [], $touch = true)
+    {
+        $count = 0;
+
+        $connection = $this->getBaseQuery()->getConnection();
+
+        $connection->beginTransaction();
+
+        if ($child == []) {
+            throw new \Exception('Not quite ready to handle this yet.');
+        }
+
+        if (is_array($child) | $child instanceof \Traversable) {
+            foreach ($child as $node) {
+                $count += $this->detach($node, $touch);
+            }
+
+            $connection->commit();
+
+            return $count;
+        }
+
+        if (!$child instanceof Node) {
+            $child = $this->parent->replicate()->setAttribute($this->parent->getKeyName(), $child)->syncOriginal();
+        }
+
+        $count += parent::detach($child, $touch);
+
+        $descendants = $this->parent->hasDescendants();
+
+        $descendants->unlock();
+        $count += $descendants->detach($child);
+        $descendants->lock();
+
+        $connection->commit();
+
+        return $count;
+    }
 }

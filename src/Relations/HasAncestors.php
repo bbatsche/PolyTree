@@ -57,4 +57,27 @@ class HasAncestors extends Indirect
 
         parent::attach($parent);
     }
+
+    /**
+     * Detach an ancestor node.
+     *
+     * @param \BeBat\PolyTree\Contracts\Node $parent
+     * @param bool $touch
+     *
+     * @return int Number of records deleted.
+     */
+    public function detach($parent = [], $touch = true)
+    {
+        $count = 0;
+
+        if ($this->newPivotStatementForId($parent->getKey())->count == 0) {
+            return $count;
+        }
+
+        $count += parent::detach($parent);
+
+        $count += $this->detachAncestry($parent, $this->parent);
+
+        return $count;
+    }
 }
