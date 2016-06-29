@@ -107,7 +107,7 @@ abstract class Indirect extends BelongsToMany
             throw new LockedRelationship();
         }
 
-        return parent::detach($id, $touch);
+        return parent::detach($ids, $touch);
     }
 
     /**
