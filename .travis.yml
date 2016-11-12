@@ -12,6 +12,10 @@ env:
 
 sudo: false
 
+cache:
+  directories:
+    - $HOME/.composer/cache
+
 before_install:
   - phpenv config-rm xdebug.ini
   - composer require illuminate/database=${LARAVEL_VERSION}.*
