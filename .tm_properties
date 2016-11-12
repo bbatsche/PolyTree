@@ -1,0 +1,35 @@
+PATH = "$PATH:vendor/bin"
+
+include = "{$include,.gitignore,.tm_properties,.travis.yml,.php_cs,.editorconfig}"
+
+[ attr.untitled ]
+fileType = text.html.php
+
+[ ".git/COMMIT_EDITMSG" ]
+softWrap         = true
+spellChecking    = true
+spellingLanguage = en
+
+[ text.html.php ]
+softTabs = true
+tabSize  = 4
+encoding = utf-8
+
+[ source.yaml ]
+softTabs = true
+tabSize  = 2
+encoding = utf-8
+
+[ source.json ]
+softTabs = true
+tabSize  = 4
+encoding = utf-8
+
+[ composer.lock ]
+fileType = source.json
+
+[ .php_cs ]
+fileType = text.html.php
+
+[ .editorconfig ]
+fileType = source.ini
