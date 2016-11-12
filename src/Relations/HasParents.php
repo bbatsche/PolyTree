@@ -3,15 +3,15 @@
 namespace BeBat\PolyTree\Relations;
 
 use BeBat\PolyTree\Contracts\Node;
-use BeBat\PolyTree\Exceptions\Cycle as CycleException;
 
 /**
- * Has Parents Relation
+ * Has Parents Relation.
  *
  * Represents a many-to-many relationship between a node and its parent nodes.
  *
  * @package BeBat\PolyTree
  * @subpackage Relations
+ *
  * @author Ben Batschelet <ben.batschelet@gmail.com>
  * @copyright 2016 Ben Batschelet
  * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
@@ -35,10 +35,8 @@ class HasParents extends Direct
      * Attach a parent node.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param array $attributes
-     * @param bool $touch
-     *
-     * @return void
+     * @param array                          $attributes
+     * @param bool                           $touch
      */
     public function attach($parent, array $attributes = [], $touch = true)
     {
@@ -75,9 +73,9 @@ class HasParents extends Direct
      * Detach a parent node.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param bool $touch
+     * @param bool                           $touch
      *
-     * @return The number of records deleted.
+     * @return The number of records deleted
      */
     public function detach($parent = [], $touch = true)
     {

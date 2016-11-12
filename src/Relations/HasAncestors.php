@@ -6,12 +6,13 @@ use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Exceptions\Cycle as CycleException;
 
 /**
- * Has Ancestors Relation
+ * Has Ancestors Relation.
  *
  * Represents a many-to-many relationship between a node and its ancestor nodes.
  *
  * @package BeBat\PolyTree
  * @subpackage Relations
+ *
  * @author Ben Batschelet <ben.batschelet@gmail.com>
  * @copyright 2016 Ben Batschelet
  * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
@@ -34,13 +35,12 @@ class HasAncestors extends Indirect
     /**
      * Attach an ancestor node.
      *
-     * @throws \BeBat\PolyTree\Exceptions\CycleException if $parent is an existing descendant of this node.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param array $attributes
-     * @param bool $touch
+     * @param array                          $attributes
+     * @param bool                           $touch
      *
-     * @return void
+     * @throws \BeBat\PolyTree\Exceptions\CycleException if $parent is an existing descendant of this node
      */
     public function attach($parent, array $attributes = [], $touch = true)
     {
@@ -62,9 +62,9 @@ class HasAncestors extends Indirect
      * Detach an ancestor node.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
-     * @param bool $touch
+     * @param bool                           $touch
      *
-     * @return int Number of records deleted.
+     * @return int Number of records deleted
      */
     public function detach($parent = [], $touch = true)
     {

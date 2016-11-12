@@ -8,12 +8,13 @@ use BeBat\PolyTree\Relations\HasDescendants;
 use BeBat\PolyTree\Relations\HasParents;
 
 /**
- * Node Trait
+ * Node Trait.
  *
  * Default implementation of PolyTree node functionality for an Eloquent model.
  *
  * @package BeBat\PolyTree
  * @subpackage Traits
+ *
  * @author Ben Batschelet <ben.batschelet@gmail.com>
  * @copyright 2016 Ben Batschelet
  * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
@@ -44,7 +45,6 @@ trait Node
      * Calling with no parameters will reset the value back to the default.
      *
      * @param string $table
-     * @return void
      */
     public function setRelationsTable($table = null)
     {
@@ -69,7 +69,6 @@ trait Node
      * Calling with no parameters will reset the value back to the default.
      *
      * @param string $table
-     * @return void
      */
     public function setAncestryTable($table = null)
     {
@@ -94,7 +93,6 @@ trait Node
      * Calling with no parameters will reset the value back to its default.
      *
      * @param string $column
-     * @return void
      */
     public function setParentKeyName($column = null)
     {
@@ -119,7 +117,6 @@ trait Node
      * Calling with no parameters will reset the value back to its default.
      *
      * @param string $column
-     * @return void
      */
     public function setChildKeyName($column = null)
     {
@@ -144,7 +141,6 @@ trait Node
      * Calling with no parameters will reset the value back to its default.
      *
      * @param string $column
-     * @return void
      */
     public function setAncestorKeyName($column = null)
     {
@@ -169,7 +165,6 @@ trait Node
      * Calling with no parameters will reset the value back to its default.
      *
      * @param string $column
-     * @return void
      */
     public function setDescendantKeyName($column = null)
     {

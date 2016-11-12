@@ -3,12 +3,13 @@
 namespace BeBat\PolyTree\Contracts;
 
 /**
- * Node Interface
+ * Node Interface.
  *
  * Any model which is part of a PolyTree must implement this interface.
  *
  * @package BeBat\PolyTree
  * @subpackage Contracts
+ *
  * @author Ben Batschelet <ben.batschelet@gmail.com>
  * @copyright 2016 Ben Batschelet
  * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
@@ -19,7 +20,6 @@ interface Node
      * Set the table name for storing this node's direct relationships.
      *
      * @param string $table
-     * @return void
      */
     public function setRelationsTable($table = null);
 
@@ -27,7 +27,6 @@ interface Node
      * Set the table name for storing this node's indirect ancestry.
      *
      * @param string $table
-     * @return void
      */
     public function setAncestryTable($table = null);
 
@@ -49,7 +48,6 @@ interface Node
      * Set the column name that points to this node's parent nodes.
      *
      * @param string $column
-     * @return void
      */
     public function setParentKeyName($column = null);
 
@@ -57,7 +55,6 @@ interface Node
      * Set the column name that points to this node's child nodes.
      *
      * @param string $column
-     * @return void
      */
     public function setChildKeyName($column = null);
 
@@ -65,7 +62,6 @@ interface Node
      * Set the column name that points to this node's ancestor nodes.
      *
      * @param string $column
-     * @return void
      */
     public function setAncestorKeyName($column = null);
 
@@ -73,7 +69,6 @@ interface Node
      * Set the column name that points to this node's descendant nodes.
      *
      * @param string $column
-     * @return void
      */
     public function setDescendantKeyName($column = null);
 

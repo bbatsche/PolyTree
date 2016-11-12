@@ -8,12 +8,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Query\Builder;
 
 /**
- * Indirect Relations
+ * Indirect Relations.
  *
  * Shared functionality for ancestor and descendant relations.
  *
  * @package BeBat\PolyTree
  * @subpackage Relations
+ *
  * @author Ben Batschelet <ben.batschelet@gmail.com>
  * @copyright 2016 Ben Batschelet
  * @license https://github.com/bbatsche/PolyTree/blob/master/LICENSE.md MIT License
@@ -27,8 +28,8 @@ abstract class Indirect extends BelongsToMany
      * Create a new indirect relationship instance.
      *
      * @param \BeBat\PolyTree\Contracts\Node $node
-     * @param string $foreignKey Column name that points back to this node.
-     * @param string $otherKey   Column name that points to the other nodes in this relationship.
+     * @param string                         $foreignKey Column name that points back to this node
+     * @param string                         $otherKey   Column name that points to the other nodes in this relationship
      */
     public function __construct(Node $node, $foreignKey, $otherKey)
     {
@@ -73,15 +74,14 @@ abstract class Indirect extends BelongsToMany
     }
 
     /**
-     * Add a node to the indirect ancestry
+     * Add a node to the indirect ancestry.
      *
-     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param \BeBat\PolyTree\Contracts\Node $node
-     * @param array $attributes
-     * @param bool  $touch
+     * @param array                          $attributes
+     * @param bool                           $touch
      *
-     * @return void
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first
      */
     public function attach($node, array $attributes = [], $touch = true)
     {
@@ -95,10 +95,11 @@ abstract class Indirect extends BelongsToMany
     /**
      * Remove a node from the indirect ancestry.
      *
-     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param int|array $ids
      * @param bool      $touch
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first
      *
      * @return int Number of nodes detached
      */
@@ -112,7 +113,7 @@ abstract class Indirect extends BelongsToMany
     }
 
     /**
-     * Generate a query builder object that joins the ancestor ids of $parent with the descendant ids of $child
+     * Generate a query builder object that joins the ancestor ids of $parent with the descendant ids of $child.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
      * @param \BeBat\PolyTree\Contracts\Node $child
@@ -122,17 +123,15 @@ abstract class Indirect extends BelongsToMany
     public function getQueryForJoinedNodes(Node $parent, Node $child)
     {
         $query = $this->newPivotStatement()
-            ->addSelect($this->getTable().'.'.$parent->getAncestorKeyName())
-            ->addSelect('joined.'.$child->getDescendantKeyName());
+            ->addSelect($this->getTable() . '.' . $parent->getAncestorKeyName())
+            ->addSelect('joined.' . $child->getDescendantKeyName());
 
-        $query->join($this->getTable().' AS joined', function($join) use ($parent, $child)
-        {
-            $join->where('joined.'.$child->getAncestorKeyName(), '=', $child->getKey());
-            $join->where($this->getTable().'.'.$parent->getDescendantKeyName(), '=', $parent->getKey());
+        $query->join($this->getTable() . ' AS joined', function ($join) use ($parent, $child) {
+            $join->where('joined.' . $child->getAncestorKeyName(), '=', $child->getKey());
+            $join->where($this->getTable() . '.' . $parent->getDescendantKeyName(), '=', $parent->getKey());
         });
 
-        $query->whereNotExists(function($q)
-        {
+        $query->whereNotExists(function ($q) {
             $grammar = $this->getBaseQuery()->getGrammar();
 
             $table = $grammar->wrapTable($this->getTable());
@@ -141,7 +140,7 @@ abstract class Indirect extends BelongsToMany
             $descendantCol = $grammar->wrap($this->parent->getDescendantKeyName());
 
             $q->select($this->newPivotStatement()->raw(1))
-                ->from($this->getTable().' AS inner')
+                ->from($this->getTable() . ' AS inner')
                 ->whereRaw("inner.$ancestorCol = $table.$ancestorCol")
                 ->whereRaw("inner.$descendantCol = joined.$descendantCol");
         });
@@ -162,8 +161,7 @@ abstract class Indirect extends BelongsToMany
         // Select all nodes that descend from $child...
         $query = $this->newPivotStatement()->where($child->getAncestorKeyName(), $child->getKey());
         // ...that aren't already descendants of $parent
-        $query->whereNotIn($child->getDescendantKeyName(), function($q) use ($parent)
-        {
+        $query->whereNotIn($child->getDescendantKeyName(), function ($q) use ($parent) {
             $q->select($parent->getDescendantKeyName())->from($this->getTable())
                 ->where($parent->getAncestorKeyName(), $parent->getKey());
         });
@@ -175,7 +173,7 @@ abstract class Indirect extends BelongsToMany
     }
 
     /**
-     * Generate a query that joins the id of $child with the ancestor ids of $parent
+     * Generate a query that joins the id of $child with the ancestor ids of $parent.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
      * @param \BeBat\PolyTree\Contracts\Node $child
@@ -187,8 +185,7 @@ abstract class Indirect extends BelongsToMany
         // Select all nodes that are ancestors of $parent...
         $query = $this->newPivotStatement()->where($parent->getDescendantKeyName(), $parent->getKey());
         // ...that aren't already ancestors of $child
-        $query->whereNotIn($parent->getAncestorKeyName(), function($q) use ($child)
-        {
+        $query->whereNotIn($parent->getAncestorKeyName(), function ($q) use ($child) {
             $q->select($child->getAncestorKeyName())->from($this->getTable())
                 ->where($child->getDescendantKeyName(), $child->getKey());
         });
@@ -200,14 +197,13 @@ abstract class Indirect extends BelongsToMany
     }
 
     /**
-     * Merge the ancestors of $parent and descendants of $child
+     * Merge the ancestors of $parent and descendants of $child.
      *
-     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
      * @param \BeBat\PolyTree\Contracts\Node $child
      *
-     * @return void
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first
      */
     public function attachAncestry(Node $parent, Node $child)
     {
@@ -237,20 +233,16 @@ abstract class Indirect extends BelongsToMany
 
     /**
      * Appends a condition to $query for finding nodes that are either
-     * descendants of $parent or descendants of $parent's ancestors
+     * descendants of $parent or descendants of $parent's ancestors.
      *
      * @param \Illuminate\Database\Query\Builder $query
      * @param \BeBat\PolyTree\Contracts\Node     $parent
-     *
-     * @return void
      */
     public function appendParentAncestorCondition(Builder $query, Node $parent)
     {
-        $query->where(function($parentQ) use ($parent)
-        {
+        $query->where(function ($parentQ) use ($parent) {
             $parentQ->orWhere($parent->getAncestorKeyName(), $parent->getKey());
-            $parentQ->orWhereIn($parent->getAncestorKeyName(), function($ancestorQ) use ($parent)
-            {
+            $parentQ->orWhereIn($parent->getAncestorKeyName(), function ($ancestorQ) use ($parent) {
                 $ancestorQ->select($parent->getAncestorKeyName())->from($this->getTable())
                     ->where($parent->getDescendantKeyName(), $parent->getKey());
             });
@@ -259,20 +251,16 @@ abstract class Indirect extends BelongsToMany
 
     /**
      * Appends a condition to $query for finding nodes that are either
-     * ancestors of $child or ancestors of $child's descendants
+     * ancestors of $child or ancestors of $child's descendants.
      *
      * @param \Illuminate\Database\Query\Builder $query
      * @param \BeBat\PolyTree\Contracts\Node     $child
-     *
-     * @return void
      */
     public function appendChildDescendantCondition(Builder $query, Node $child)
     {
-        $query->where(function($childQ) use ($child)
-        {
+        $query->where(function ($childQ) use ($child) {
             $childQ->orWhere($child->getDescendantKeyName(), $child->getKey());
-            $childQ->orWhereIn($child->getDescendantKeyName(), function($descendantQ) use ($child)
-            {
+            $childQ->orWhereIn($child->getDescendantKeyName(), function ($descendantQ) use ($child) {
                 $descendantQ->select($child->getDescendantKeyName())->from($this->getTable())
                     ->where($child->getAncestorKeyName(), $child->getKey());
             });
@@ -285,16 +273,13 @@ abstract class Indirect extends BelongsToMany
      *
      * @param \Illuminate\Database\Query\Builder $query
      * @param \BeBat\PolyTree\Contracts\Node     $parent
-     *
-     * @return void
      */
     public function appendParentsChildrenNegation(Builder $query, Node $parent)
     {
         $parentsChildrenQ = $parent->hasChildren()->getBaseQuery()->select($parent->getKeyName());
 
         $query->whereNotIn($parent->getDescendantKeyName(), $parentsChildrenQ);
-        $query->whereNotIn($parent->getDescendantKeyName(), function($childDescendantQ) use ($parent, $parentsChildrenQ)
-        {
+        $query->whereNotIn($parent->getDescendantKeyName(), function ($childDescendantQ) use ($parent, $parentsChildrenQ) {
             $childDescendantQ->select($parent->getDescendantKeyName())->from($this->getTable())
                 ->whereIn($parent->getAncestorKeyName(), $parentsChildrenQ);
         });
@@ -306,28 +291,26 @@ abstract class Indirect extends BelongsToMany
      *
      * @param \Illuminate\Database\Query\Builder $query
      * @param \BeBat\PolyTree\Contracts\Node     $child
-     *
-     * @return void
      */
     public function appendChildsParentsNegation(Builder $query, Node $child)
     {
         $childsParentsQ = $child->hasParents()->getBaseQuery()->select($child->getKeyName());
 
         $query->whereNotIn($child->getAncestorKeyName(), $childsParentsQ);
-        $query->whereNotIn($child->getAncestorKeyName(), function($parentAncestorQ) use ($child, $childsParentsQ)
-        {
+        $query->whereNotIn($child->getAncestorKeyName(), function ($parentAncestorQ) use ($child, $childsParentsQ) {
             $parentAncestorQ->select($child->getAncestorKeyName())->from($this->getTable())
                 ->whereIn($child->getDescendantKeyName(), $childsParentsQ);
         });
     }
 
     /**
-     * Remove $parent's ancestors from $child, and $child's descendants from $parent
+     * Remove $parent's ancestors from $child, and $child's descendants from $parent.
      *
-     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first.
      *
      * @param \BeBat\PolyTree\Contracts\Node $parent
      * @param \BeBat\PolyTree\Contracts\Node $child
+     *
+     * @throws \BeBat\PolyTree\Exceptions\LockedRelationship if this relationship has not been unlocked first
      *
      * @return int Number of rows deleted
      */
