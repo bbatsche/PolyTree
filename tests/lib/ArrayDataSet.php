@@ -3,9 +3,9 @@
 namespace BeBat\PolyTree\Test;
 
 use PHPUnit_Extensions_Database_DataSet_AbstractDataSet as AbstractDataSet;
-use PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData as DefaultTableMetaData;
 use PHPUnit_Extensions_Database_DataSet_DefaultTable as DefaultTable;
 use PHPUnit_Extensions_Database_DataSet_DefaultTableIterator as DefaultTableIterator;
+use PHPUnit_Extensions_Database_DataSet_DefaultTableMetaData as DefaultTableMetaData;
 
 class ArrayDataSet extends AbstractDataSet
 {
@@ -19,7 +19,7 @@ class ArrayDataSet extends AbstractDataSet
      */
     public function __construct(array $data)
     {
-        foreach ($data AS $tableName => $rows) {
+        foreach ($data as $tableName => $rows) {
             $columns = [];
 
             if (isset($rows[0])) {
@@ -27,19 +27,14 @@ class ArrayDataSet extends AbstractDataSet
             }
 
             $metaData = new DefaultTableMetaData($tableName, $columns);
-            $table = new DefaultTable($metaData);
+            $table    = new DefaultTable($metaData);
 
-            foreach ($rows AS $row) {
+            foreach ($rows as $row) {
                 $table->addRow($row);
             }
 
             $this->tables[$tableName] = $table;
         }
-    }
-
-    protected function createIterator($reverse = false)
-    {
-        return new DefaultTableIterator($this->tables, $reverse);
     }
 
     public function getTable($tableName)
@@ -49,5 +44,10 @@ class ArrayDataSet extends AbstractDataSet
         }
 
         return $this->tables[$tableName];
+    }
+
+    protected function createIterator($reverse = false)
+    {
+        return new DefaultTableIterator($this->tables, $reverse);
     }
 }

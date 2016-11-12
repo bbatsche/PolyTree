@@ -9,7 +9,7 @@ class ModelTest extends TestCase
 {
     public function testRelationshipAliases()
     {
-        $model = new TestWrapperModel;
+        $model = new TestWrapperModel();
 
         verify($model->parents())->isInstanceOf('BeBat\PolyTree\Relations\HasParents');
         verify($model->children())->isInstanceOf('BeBat\PolyTree\Relations\HasChildren');

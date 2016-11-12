@@ -2,14 +2,12 @@
 
 use Illuminate\Database\Capsule\Manager;
 
-Manager::schema()->create('nodes', function ($table)
-{
+Manager::schema()->create('nodes', function ($table) {
     $table->increments('id');
     $table->string('value');
 });
 
-Manager::schema()->create('relations', function ($table)
-{
+Manager::schema()->create('relations', function ($table) {
     $table->integer('parent_id')->unsinged();
     $table->integer('child_id')->unsinged();
 
@@ -21,8 +19,7 @@ Manager::schema()->create('relations', function ($table)
     $table->primary(['parent_id', 'child_id']);
 });
 
-Manager::schema()->create('ancestry', function ($table)
-{
+Manager::schema()->create('ancestry', function ($table) {
     $table->integer('ancestor_id')->unsinged();
     $table->integer('descendant_id')->unsinged();
 

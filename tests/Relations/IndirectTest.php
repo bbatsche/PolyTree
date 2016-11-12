@@ -3,7 +3,6 @@
 namespace BeBat\PolyTree\Test\Relations;
 
 use BeBat\PolyTree\Relations\Indirect as IndirectBase;
-use BeBat\PolyTree\Test\TestModel;
 use Mockery;
 use PHPUnit_Framework_TestCase as TestCase;
 

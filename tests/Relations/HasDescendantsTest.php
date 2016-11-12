@@ -20,13 +20,13 @@ class HasDescendantsTest extends TestCase
         $mockedFunctions = [
             'getDescendantKeyName',
             'getAncestorKeyName',
-            'getKey'
+            'getKey',
         ];
 
         $this->zeroCount = Mockery::mock('zeroCount');
         $this->oneCount  = Mockery::mock('oneCount');
 
-        $this->parentNode = Mockery::mock('BeBat\PolyTree\Model['.implode(',', $mockedFunctions).']');
+        $this->parentNode = Mockery::mock('BeBat\PolyTree\Model[' . implode(',', $mockedFunctions) . ']');
         $this->childNode  = Mockery::mock('BeBat\PolyTree\Model');
 
         $this->zeroCount->shouldReceive('count')->andReturn(0);
@@ -41,7 +41,7 @@ class HasDescendantsTest extends TestCase
             ->andReturn($this->zeroCount)->byDefault();
 
         // Mock newPivotStatementForId in SUT so we can control whether this node already has a descendant
-        $relationMock = 'BeBat\PolyTree\Relations\HasDescendants[newPivotStatementForId,attachAncestry]';
+        $relationMock   = 'BeBat\PolyTree\Relations\HasDescendants[newPivotStatementForId,attachAncestry]';
         $this->relation = Mockery::mock($relationMock, [$this->parentNode]);
 
         $this->relation->shouldReceive('newPivotStatementForId')->andReturn($this->zeroCount)->byDefault();

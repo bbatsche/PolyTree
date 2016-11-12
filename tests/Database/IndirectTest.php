@@ -2,9 +2,9 @@
 
 namespace BeBat\PolyTree\Test\Database;
 
-use BeBat\PolyTree\Test\TestModel;
 use BeBat\PolyTree\Relations\Indirect as IndirectBase;
-use BeBat\PolyTree\Test\ArrayDataSet;
+use BeBat\PolyTree\Test\TestModel;
+use Illuminate\Support\Collection;
 
 class IndirectTest extends TestCase
 {
@@ -14,6 +14,20 @@ class IndirectTest extends TestCase
 
     protected $orderBy = ['ancestor_id', 'descendant_id'];
 
+    public function setUp()
+    {
+        parent::setUp();
+
+        $this->nodes = [];
+
+        for ($i = 1; $i <= 8; $i++) {
+            $this->nodes[$i] = (new TestModel(['id' => $i]))->syncOriginal();
+        }
+
+        $this->relation = new Indirect(new TestModel(), 'foreign_key', 'other_key');
+        $this->relation->unlock();
+    }
+
     public function getDataSet()
     {
         $dataSet = parent::getDataSet();
@@ -21,20 +35,6 @@ class IndirectTest extends TestCase
         $dataSet->addDataSet($this->createYamlDataSet('EmptyAncestry.yml'));
 
         return $dataSet;
-    }
-
-    public function setUp()
-    {
-        parent::setUp();
-
-        $this->nodes = array();
-
-        for ($i = 1; $i <= 8; $i++) {
-            $this->nodes[$i] = (new TestModel(['id' => $i]))->syncOriginal();
-        }
-
-        $this->relation = new Indirect(new TestModel, 'foreign_key', 'other_key');
-        $this->relation->unlock();
     }
 
     public function testNoRelatives()
@@ -49,8 +49,8 @@ class IndirectTest extends TestCase
     public function testParentSingleAncestor()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -60,8 +60,8 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
 
         $rows[] = [
-            'ancestor_id' => 1,
-            'descendant_id' => 3
+            'ancestor_id'   => 1,
+            'descendant_id' => 3,
         ];
 
         $this->assertAncestryHasRows($rows);
@@ -70,8 +70,8 @@ class IndirectTest extends TestCase
     public function testChildSingleDescendant()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -81,8 +81,8 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[3], $this->nodes[1]);
 
         $rows[] = [
-            'ancestor_id' => 3,
-            'descendant_id' => 2
+            'ancestor_id'   => 3,
+            'descendant_id' => 2,
         ];
 
         $this->assertAncestryHasRows($rows);
@@ -91,11 +91,11 @@ class IndirectTest extends TestCase
     public function testSingleAncestorSingleDescendant()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 4
+            'ancestor_id'   => 3,
+            'descendant_id' => 4,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -105,14 +105,14 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
 
         $rows = array_merge($rows, [[
-            'ancestor_id' => 1,
-            'descendant_id' => 4
+            'ancestor_id'   => 1,
+            'descendant_id' => 4,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 3
+            'ancestor_id'   => 1,
+            'descendant_id' => 3,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 4
+            'ancestor_id'   => 2,
+            'descendant_id' => 4,
         ]]);
 
         $this->assertAncestryHasRows($rows);
@@ -121,11 +121,11 @@ class IndirectTest extends TestCase
     public function testParentMultipleAncestors()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 2
+            'ancestor_id'   => 3,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -135,11 +135,11 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[2], $this->nodes[4]);
 
         $rows = array_merge($rows, [[
-            'ancestor_id' => 1,
-            'descendant_id' => 4
+            'ancestor_id'   => 1,
+            'descendant_id' => 4,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 4
+            'ancestor_id'   => 3,
+            'descendant_id' => 4,
         ]]);
 
         $this->assertAncestryHasRows($rows);
@@ -148,11 +148,11 @@ class IndirectTest extends TestCase
     public function testChildMultipleDescendants()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 3
+            'ancestor_id'   => 1,
+            'descendant_id' => 3,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -162,11 +162,11 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[4], $this->nodes[1]);
 
         $rows = array_merge($rows, [[
-            'ancestor_id' => 4,
-            'descendant_id' => 2
+            'ancestor_id'   => 4,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 4,
-            'descendant_id' => 3
+            'ancestor_id'   => 4,
+            'descendant_id' => 3,
         ]]);
 
         $this->assertAncestryHasRows($rows);
@@ -175,11 +175,11 @@ class IndirectTest extends TestCase
     public function testSharedAncestor()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 3
+            'ancestor_id'   => 1,
+            'descendant_id' => 3,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -194,11 +194,11 @@ class IndirectTest extends TestCase
     public function testSharedDescendant()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 2
+            'ancestor_id'   => 3,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -213,8 +213,8 @@ class IndirectTest extends TestCase
     public function testParentDescendant()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -229,8 +229,8 @@ class IndirectTest extends TestCase
     public function testChildAncestor()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 2
+            'ancestor_id'   => 1,
+            'descendant_id' => 2,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -249,42 +249,42 @@ class IndirectTest extends TestCase
      *  / \ /
      * 4   5
      *    / \
-     *   7   8
+     *   7   8.
      *
      * (Adding 3<-5)
      */
     public function testMultipleAncestorsMultipleDescendants()
     {
         $rows = [[
-            'ancestor_id' => 1,
-            'descendant_id' => 3
+            'ancestor_id'   => 1,
+            'descendant_id' => 3,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 3
+            'ancestor_id'   => 2,
+            'descendant_id' => 3,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 4
+            'ancestor_id'   => 1,
+            'descendant_id' => 4,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 4
+            'ancestor_id'   => 2,
+            'descendant_id' => 4,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 4
+            'ancestor_id'   => 3,
+            'descendant_id' => 4,
         ], [
-            'ancestor_id' => 6,
-            'descendant_id' => 5
+            'ancestor_id'   => 6,
+            'descendant_id' => 5,
         ], [
-            'ancestor_id' => 6,
-            'descendant_id' => 7
+            'ancestor_id'   => 6,
+            'descendant_id' => 7,
         ], [
-            'ancestor_id' => 6,
-            'descendant_id' => 8
+            'ancestor_id'   => 6,
+            'descendant_id' => 8,
         ], [
-            'ancestor_id' => 5,
-            'descendant_id' => 7
+            'ancestor_id'   => 5,
+            'descendant_id' => 7,
         ], [
-            'ancestor_id' => 5,
-            'descendant_id' => 8
+            'ancestor_id'   => 5,
+            'descendant_id' => 8,
         ]];
 
         $this->addRowsToAncestry($rows);
@@ -293,17 +293,17 @@ class IndirectTest extends TestCase
             ['1', '7'],
             ['1', '8'],
             ['2', '7'],
-            ['2', '8']
+            ['2', '8'],
         ];
 
         $expChildAncestors = [
             ['1', '5'],
-            ['2', '5']
+            ['2', '5'],
         ];
 
         $expParentDescendants = [
             ['3', '7'],
-            ['3', '8']
+            ['3', '8'],
         ];
 
         $this->doAttachmentAssertions($this->nodes[3], $this->nodes[5], $expectedJoined, $expChildAncestors, $expParentDescendants);
@@ -311,29 +311,29 @@ class IndirectTest extends TestCase
         $this->relation->attachAncestry($this->nodes[3], $this->nodes[5]);
 
         $rows = array_merge($rows, [[
-            'ancestor_id' => 1,
-            'descendant_id' => 7
+            'ancestor_id'   => 1,
+            'descendant_id' => 7,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 8
+            'ancestor_id'   => 1,
+            'descendant_id' => 8,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 7
+            'ancestor_id'   => 2,
+            'descendant_id' => 7,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 8
+            'ancestor_id'   => 2,
+            'descendant_id' => 8,
         ], [
-            'ancestor_id' => 1,
-            'descendant_id' => 5
+            'ancestor_id'   => 1,
+            'descendant_id' => 5,
         ], [
-            'ancestor_id' => 2,
-            'descendant_id' => 5
+            'ancestor_id'   => 2,
+            'descendant_id' => 5,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 7
+            'ancestor_id'   => 3,
+            'descendant_id' => 7,
         ], [
-            'ancestor_id' => 3,
-            'descendant_id' => 8
+            'ancestor_id'   => 3,
+            'descendant_id' => 8,
         ]]);
 
         $this->assertAncestryHasRows($rows);
@@ -351,9 +351,9 @@ class IndirectTest extends TestCase
             return -1;
         } elseif ($a[$column] > $b[$column]) {
             return 1;
-        } else {
-            return $this->compareRows($a, $b, $colNum + 1);
         }
+
+        return $this->compareRows($a, $b, $colNum + 1);
     }
 
     protected function addRowsToAncestry(array $rows)
@@ -381,9 +381,21 @@ class IndirectTest extends TestCase
         array $expChildAncestors,
         array $expParentDescendants
     ) {
-        $actualJoinedIds        = $this->relation->getQueryForJoinedNodes($parent, $child)->get();
-        $actualChildAncestors  = $this->relation->getQueryForChildAncestors($parent, $child)->get();
+        $actualJoinedIds         = $this->relation->getQueryForJoinedNodes($parent, $child)->get();
+        $actualChildAncestors    = $this->relation->getQueryForChildAncestors($parent, $child)->get();
         $actualParentDescendants = $this->relation->getQueryForParentDescendants($parent, $child)->get();
+
+        if ($actualJoinedIds instanceof Collection) {
+            $actualJoinedIds = $actualJoinedIds->all();
+        }
+
+        if ($actualChildAncestors instanceof Collection) {
+            $actualChildAncestors = $actualChildAncestors->all();
+        }
+
+        if ($actualParentDescendants instanceof Collection) {
+            $actualParentDescendants = $actualParentDescendants->all();
+        }
 
         verify('joined IDs',                  $actualJoinedIds)->withoutOrder()->equals($expJoined);
         verify("IDs for parent's ancestors",  $actualChildAncestors)->withoutOrder()->equals($expChildAncestors);

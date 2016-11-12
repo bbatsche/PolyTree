@@ -3,16 +3,16 @@
 namespace BeBat\PolyTree\Test\Relations;
 
 use BeBat\PolyTree\Contracts\Node;
-use BeBat\PolyTree\Relations\HasParents;
-use BeBat\PolyTree\Relations\HasChildren;
 use BeBat\PolyTree\Relations\HasAncestors;
+use BeBat\PolyTree\Relations\HasChildren;
 use BeBat\PolyTree\Relations\HasDescendants;
+use BeBat\PolyTree\Relations\HasParents;
 use BeBat\PolyTree\Test\TestModel;
 use Mockery;
 use PHPUnit_Framework_TestCase as TestCase;
 
 /**
- * Special handling for *::attach() methods
+ * Special handling for *::attach() methods.
  *
  * @runTestsInSeparateProcesses
  * @preserveGlobalState disabled
@@ -110,8 +110,7 @@ class AttachTest extends TestCase
 
     public function testHasParentsAttachForId()
     {
-        $validateAttachArgs = function ($node)
-        {
+        $validateAttachArgs = function ($node) {
             return $node instanceof Node && $node->getKey() == 'scalar_value';
         };
 
@@ -124,6 +123,7 @@ class AttachTest extends TestCase
         $this->mockConnection->shouldReceive('commit')->withNoArgs()->once();
 
         $relation = new HasParents($this->childNode);
+
         $relation->parent = $this->childNode;
 
         verify($relation->attach('scalar_value'))->isEmpty();
@@ -131,8 +131,7 @@ class AttachTest extends TestCase
 
     public function testHasChildrenAttachForId()
     {
-        $validateAttachArgs = function ($node)
-        {
+        $validateAttachArgs = function ($node) {
             return $node instanceof Node && $node->getKey() == 'scalar_value';
         };
 
@@ -145,6 +144,7 @@ class AttachTest extends TestCase
         $this->mockConnection->shouldReceive('commit')->withNoArgs()->once();
 
         $relation = new HasChildren($this->parentNode);
+
         $relation->parent = $this->parentNode;
 
         verify($relation->attach('scalar_value'))->isEmpty();
@@ -153,8 +153,8 @@ class AttachTest extends TestCase
     public function nodeCollectionProvider()
     {
         return [
-            'array of nodes' => [[new TestModel(['id' => 1]), new TestModel(['id' => 2])]],
-            'Laravel collection' => [collect([new TestModel(['id' => 1]), new TestModel(['id' => 2])])]
+            'array of nodes'     => [[new TestModel(['id' => 1]), new TestModel(['id' => 2])]],
+            'Laravel collection' => [collect([new TestModel(['id' => 1]), new TestModel(['id' => 2])])],
         ];
     }
 
@@ -213,6 +213,7 @@ class AttachTest extends TestCase
         $this->indirectRel->shouldReceive('attach')->with($this->mockNode)->once()->ordered();
 
         $relation = new HasAncestors($this->childNode);
+
         $relation->parent = $this->childNode; // Normally done via Indirect constructor
 
         verify($relation->attach($this->mockNode))->isEmpty();
@@ -225,6 +226,7 @@ class AttachTest extends TestCase
         $this->indirectRel->shouldReceive('attach')->with($this->mockNode)->once()->ordered();
 
         $relation = new HasDescendants($this->parentNode);
+
         $relation->parent = $this->parentNode; // Normally done via Indirect constructor
 
         verify($relation->attach($this->mockNode))->isEmpty();

@@ -6,7 +6,10 @@ use BeBat\PolyTree\Model as PolyTreeModel;
 
 class TestModel extends PolyTreeModel
 {
-    protected $table = 'nodes';
+    public $incrementing      = false;
+    public $timestamps        = false;
+
+    protected $table          = 'nodes';
     protected $relationsTable = 'relations';
     protected $ancestryTable  = 'ancestry';
 
@@ -16,6 +19,4 @@ class TestModel extends PolyTreeModel
     protected $descendantKey = 'descendant_id';
 
     protected $guarded = [];
-
-    public $incrementing = false;
 }

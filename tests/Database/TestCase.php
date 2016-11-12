@@ -4,22 +4,22 @@ namespace BeBat\PolyTree\Test\Database;
 
 use BeBat\PolyTree\Test\ArrayDataSet;
 use Illuminate\Database\Capsule\Manager;
-use PHPUnit_Extensions_Database_TestCase as TestCaseBase;
 use PHPUnit_Extensions_Database_DataSet_CompositeDataSet as CompositeDataSet;
 use PHPUnit_Extensions_Database_DataSet_IDataSet as DataSetInterface;
 use PHPUnit_Extensions_Database_DataSet_YamlDataSet as YamlDataSet;
+use PHPUnit_Extensions_Database_TestCase as TestCaseBase;
 
 abstract class TestCase extends TestCaseBase
 {
     protected static $fixturePrefix;
 
-    protected static $baseFixtures = array();
+    protected static $baseFixtures = [];
 
     public static function setupBeforeClass()
     {
         static::$fixturePrefix = realpath(__DIR__ . '/../_fixtures');
 
-        static::$baseFixtures = array('TestModels.yml');
+        static::$baseFixtures = ['TestModels.yml'];
     }
 
     public function getConnection()
@@ -27,6 +27,7 @@ abstract class TestCase extends TestCaseBase
         Manager::connection()->setFetchMode(\PDO::FETCH_NUM);
 
         $pdo = Manager::getPdo();
+
         return $this->createDefaultDBConnection($pdo, ':memory:');
     }
 
@@ -46,7 +47,7 @@ abstract class TestCase extends TestCaseBase
         return new YamlDataSet(static::$fixturePrefix . '/' . $fileName);
     }
 
-    public function createSimpleArrayDataSet($tableName, array $rows = array())
+    public function createSimpleArrayDataSet($tableName, array $rows = [])
     {
         return $this->createArrayDataSet([$tableName => $rows]);
     }
