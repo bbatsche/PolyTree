@@ -2,20 +2,18 @@
 
 namespace BeBat\PolyTree\Test;
 
-use BeBat\PolyTree\Model as BaseModel;
+use BeBat\PolyTree\Relations;
 use PHPUnit_Framework_TestCase as TestCase;
 
 class ModelTest extends TestCase
 {
     public function testRelationshipAliases()
     {
-        $model = new TestWrapperModel();
+        $model = new TestModel();
 
-        verify($model->parents())->isInstanceOf('BeBat\PolyTree\Relations\HasParents');
-        verify($model->children())->isInstanceOf('BeBat\PolyTree\Relations\HasChildren');
-        verify($model->ancestors())->isInstanceOf('BeBat\PolyTree\Relations\HasAncestors');
-        verify($model->descendants())->isInstanceOf('BeBat\PolyTree\Relations\HasDescendants');
+        verify($model->parents())->isInstanceOf(Relations\HasParents::class);
+        verify($model->children())->isInstanceOf(Relations\HasChildren::class);
+        verify($model->ancestors())->isInstanceOf(Relations\HasAncestors::class);
+        verify($model->descendants())->isInstanceOf(Relations\HasDescendants::class);
     }
 }
-
-class TestWrapperModel extends BaseModel {}
