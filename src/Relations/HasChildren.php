@@ -89,7 +89,7 @@ class HasChildren extends Direct
             throw new \Exception('Not quite ready to handle this yet.');
         }
 
-        if (is_array($child) | $child instanceof \Traversable) {
+        if (is_array($child) || $child instanceof \Traversable) {
             foreach ($child as $node) {
                 $count += $this->detach($node, $touch);
             }

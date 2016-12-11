@@ -70,7 +70,7 @@ class HasAncestors extends Indirect
     {
         $count = 0;
 
-        if ($this->newPivotStatementForId($parent->getKey())->count == 0) {
+        if ($this->newPivotStatementForId($parent->getKey())->count() == 0) {
             return $count;
         }
 
