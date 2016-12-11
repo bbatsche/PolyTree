@@ -2,10 +2,8 @@
 
 namespace BeBat\PolyTree\Traits;
 
-use BeBat\PolyTree\Relations\HasAncestors;
-use BeBat\PolyTree\Relations\HasChildren;
-use BeBat\PolyTree\Relations\HasDescendants;
-use BeBat\PolyTree\Relations\HasParents;
+use BeBat\PolyTree\Relations;
+use Illuminate\Support\Str;
 
 /**
  * Node Trait.
@@ -60,7 +58,7 @@ trait Node
      */
     public function getRelationsTable()
     {
-        return $this->relationsTable ?: snake_case(class_basename($this)) . '_relations';
+        return $this->relationsTable ?: Str::singular($this->getTable()) . '_relations';
     }
 
     /**
@@ -84,7 +82,7 @@ trait Node
      */
     public function getAncestryTable()
     {
-        return $this->ancestryTable ?: snake_case(class_basename($this)) . '_ancestry';
+        return $this->ancestryTable ?: Str::singular($this->getTable()) . '_ancestry';
     }
 
     /**
@@ -108,7 +106,7 @@ trait Node
      */
     public function getParentKeyName()
     {
-        return $this->parentKey ?: 'parent_' . snake_case(class_basename($this)) . '_id';
+        return $this->parentKey ?: 'parent_' . Str::singular($this->getTable()) . '_id';
     }
 
     /**
@@ -132,7 +130,7 @@ trait Node
      */
     public function getChildKeyName()
     {
-        return $this->childKey ?: 'child_' . snake_case(class_basename($this)) . '_id';
+        return $this->childKey ?: 'child_' . Str::singular($this->getTable()) . '_id';
     }
 
     /**
@@ -156,7 +154,7 @@ trait Node
      */
     public function getAncestorKeyName()
     {
-        return $this->ancestorKey ?: 'ancestor_' . snake_case(class_basename($this)) . '_id';
+        return $this->ancestorKey ?: 'ancestor_' . Str::singular($this->getTable()) . '_id';
     }
 
     /**
@@ -180,46 +178,46 @@ trait Node
      */
     public function getDescendantKeyName()
     {
-        return $this->descendantKey ?: 'descendant_' . snake_case(class_basename($this)) . '_id';
+        return $this->descendantKey ?: 'descendant_' . Str::singular($this->getTable()) . '_id';
     }
 
     /**
      * Define a relationship to this node's parent nodes.
      *
-     * @return \BeBat\PolyTree\Relations\HasParents
+     * @return BeBat\PolyTree\Relations\HasParents
      */
     public function hasParents()
     {
-        return new HasParents($this);
+        return new Relations\HasParents($this);
     }
 
     /**
      * Define a relationship to this node's child nodes.
      *
-     * @return \BeBat\PolyTree\Relations\HasChildren
+     * @return BeBat\PolyTree\Relations\HasChildren
      */
     public function hasChildren()
     {
-        return new HasChildren($this);
+        return new Relations\HasChildren($this);
     }
 
     /**
      * Define a relationship to this node's ancestor nodes.
      *
-     * @return \BeBat\PolyTree\Relations\HasAncestors
+     * @return BeBat\PolyTree\Relations\HasAncestors
      */
     public function hasAncestors()
     {
-        return new HasAncestors($this);
+        return new Relations\HasAncestors($this);
     }
 
     /**
      * Define a relationship to this node's descendant nodes.
      *
-     * @return \BeBat\PolyTree\Relations\HasDescendants
+     * @return BeBat\PolyTree\Relations\HasDescendants
      */
     public function hasDescendants()
     {
-        return new HasDescendants($this);
+        return new Relations\HasDescendants($this);
     }
 }
