@@ -1,0 +1,38 @@
+---
+node_ancestry:
+  - ancestor_node_id: 1
+    descendant_node_id: 3
+  - ancestor_node_id: 1
+    descendant_node_id: 5
+  - ancestor_node_id: 1
+    descendant_node_id: 6
+  - ancestor_node_id: 1
+    descendant_node_id: 7
+  - ancestor_node_id: 1
+    descendant_node_id: 8
+  - ancestor_node_id: 2
+    descendant_node_id: 3
+  - ancestor_node_id: 2
+    descendant_node_id: 5
+  - ancestor_node_id: 2
+    descendant_node_id: 6
+  - ancestor_node_id: 2
+    descendant_node_id: 7
+  - ancestor_node_id: 2
+    descendant_node_id: 8
+  - ancestor_node_id: 3
+    descendant_node_id: 5
+  - ancestor_node_id: 3
+    descendant_node_id: 7
+  - ancestor_node_id: 3
+    descendant_node_id: 8
+  - ancestor_node_id: 4
+    descendant_node_id: 6
+  - ancestor_node_id: 4
+    descendant_node_id: 7
+  - ancestor_node_id: 4
+    descendant_node_id: 8
+  - ancestor_node_id: 6
+    descendant_node_id: 7
+  - ancestor_node_id: 6
+    descendant_node_id: 8

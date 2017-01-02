@@ -1,0 +1,7 @@
+---
+node_ancestry:
+  - ancestor_node_id: 2
+    descendant_node_id: 3
+  - ancestor_node_id: 2
+    descendant_node_id: 4
+

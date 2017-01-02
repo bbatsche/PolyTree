@@ -5,16 +5,29 @@ namespace BeBat\PolyTree\Test;
 use BeBat\PolyTree\Relations;
 use PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * Test methods built into the Node trait.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Test
+ */
 class NodeTest extends TestCase
 {
+    /** @var BeBat\PolyTree\Test\TestModel */
     protected $model;
 
+    /**
+     * Instantiate our test model and hard code its table name.
+     */
     protected function setUp()
     {
         $this->model = new TestModel();
         $this->model->setTable('nodes');
     }
 
+    /**
+     * Test methods for getting & setting related table names.
+     */
     public function testTableNames()
     {
         verify('generates a relation table name',  $this->model->getRelationsTable())->equals('node_relations');
@@ -27,6 +40,9 @@ class NodeTest extends TestCase
         verify('uses hard coded ancestry table name', $this->model->getAncestryTable())->equals('overriden_ancestry');
     }
 
+    /**
+     * Test methods for getting & setting related table column names.
+     */
     public function testColumNames()
     {
         verify('generates parent key name',     $this->model->getParentKeyname())->equals('parent_node_id');
@@ -45,6 +61,9 @@ class NodeTest extends TestCase
         verify('uses had coded descendant key name', $this->model->getDescendantKeyName())->equals('overriden_descendant_id');
     }
 
+    /**
+     * Test methods for getting underlying relationships.
+     */
     public function testRelationMethods()
     {
         verify($this->model->hasParents())->isInstanceOf(Relations\HasParents::class);

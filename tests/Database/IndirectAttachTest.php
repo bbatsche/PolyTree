@@ -8,12 +8,32 @@ use Illuminate\Support\Collection;
 
 class IndirectAttachTest extends TestCase
 {
+    /**
+     * Node models for testing
+     *
+     * @var array
+     */
     protected $nodes;
 
+    /**
+     * Indirect relation to test.
+     *
+     * @var BeBat\PolyTree\Relations\Indirect
+     */
     protected $relation;
 
+    /**
+     * Columns to sort results by.
+     *
+     * Setting this as a class property makes it easier to sort in both the DB and in memory values.
+     *
+     * @var array
+     */
     protected $orderBy = ['ancestor_node_id', 'descendant_node_id'];
 
+    /**
+     * Set up our sample data and the SUT.
+     */
     public function setUp()
     {
         parent::setUp();
@@ -28,266 +48,162 @@ class IndirectAttachTest extends TestCase
         $this->relation->unlock();
     }
 
-    public function getDataSet()
-    {
-        $dataSet = parent::getDataSet();
-
-        $dataSet->addDataSet($this->createYamlDataSet('EmptyAncestry.yml'));
-
-        return $dataSet;
-    }
-
+    /**
+     * If $parent & $child have no ancestors or descendants, the attachAncestry() should do nothing.
+     */
     public function testNoRelatives()
     {
-        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[2], [], [], []);
+        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[2]);
 
         $this->relation->attachAncestry($this->nodes[1], $this->nodes[2]);
 
         verify('nothing was inserted', $this->getConnection()->getRowCount('node_ancestry'))->equals(0);
     }
 
+    /**
+     * If $parent has an ancestor, it should be attached to $child.
+     */
     public function testParentSingleAncestor()
     {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ]];
+        $this->appendDataSet($this->createYamlDataSet('SingleAncestry.yml'));
 
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[2], $this->nodes[3], [], [['1', '3']], []);
+        $this->doAttachmentAssertions($this->nodes[2], $this->nodes[3], [], [['1', '3']]);
 
         $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
 
-        $rows[] = [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 3,
-        ];
-
-        $this->assertAncestryHasRows($rows);
+        $this->assertAncestryMatchesFixture('attachment/expected/ParentSingleAncestor.yml');
     }
 
+    /**
+     * If $child has a descendant, it should be attached to $parent.
+     */
     public function testChildSingleDescendant()
     {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ]];
-
-        $this->addRowsToAncestry($rows);
+        $this->appendDataSet($this->createYamlDataSet('SingleAncestry.yml'));
 
         $this->doAttachmentAssertions($this->nodes[3], $this->nodes[1], [], [], [['3', '2']]);
 
         $this->relation->attachAncestry($this->nodes[3], $this->nodes[1]);
 
-        $rows[] = [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 2,
-        ];
-
-        $this->assertAncestryHasRows($rows);
+        $this->assertAncestryMatchesFixture('attachment/expected/ChildSingleDescendant.yml');
     }
 
+    /**
+     * If $parent has an ancestory and $child has a descendant, they should be merged together.
+     */
     public function testSingleAncestorSingleDescendant()
     {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 4,
-        ]];
-
-        $this->addRowsToAncestry($rows);
+        $this->appendDataSet($this->createYamlDataSet('attachment/initial/SingleAncestorSingleDescendant.yml'));
 
         $this->doAttachmentAssertions($this->nodes[2], $this->nodes[3], [['1', '4']], [['1', '3']], [['2', '4']]);
 
         $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
 
-        $rows = array_merge($rows, [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 4,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 3,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 4,
-        ]]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testParentMultipleAncestors()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 2,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[2], $this->nodes[4], [], [['1', '4'], ['3', '4']], []);
-
-        $this->relation->attachAncestry($this->nodes[2], $this->nodes[4]);
-
-        $rows = array_merge($rows, [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 4,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 4,
-        ]]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testChildMultipleDescendants()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 3,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[4], $this->nodes[1], [], [], [['4', '2'], ['4', '3']]);
-
-        $this->relation->attachAncestry($this->nodes[4], $this->nodes[1]);
-
-        $rows = array_merge($rows, [[
-            'ancestor_node_id'   => 4,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 4,
-            'descendant_node_id' => 3,
-        ]]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testSharedAncestor()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 3,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[2], $this->nodes[3], [], [], []);
-
-        $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testSharedDescendant()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 2,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[3], [], [], []);
-
-        $this->relation->attachAncestry($this->nodes[1], $this->nodes[3]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testParentDescendant()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[3], [], [], []);
-
-        $this->relation->attachAncestry($this->nodes[1], $this->nodes[3]);
-
-        $this->assertAncestryHasRows($rows);
-    }
-
-    public function testChildAncestor()
-    {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 2,
-        ]];
-
-        $this->addRowsToAncestry($rows);
-
-        $this->doAttachmentAssertions($this->nodes[3], $this->nodes[2], [], [], []);
-
-        $this->relation->attachAncestry($this->nodes[3], $this->nodes[2]);
-
-        $this->assertAncestryHasRows($rows);
+        $this->assertAncestryMatchesFixture('attachment/expected/SingleAncestorSingleDescendant.yml');
     }
 
     /**
+     * If $parent has multiple ancestors, they should be attached to $child.
+     */
+    public function testParentMultipleAncestors()
+    {
+        $this->appendDataSet($this->createYamlDataSet('attachment/initial/ParentMultipleAncestor.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[3], $this->nodes[4], [], [['1', '4'], ['2', '4']]);
+
+        $this->relation->attachAncestry($this->nodes[3], $this->nodes[4]);
+
+        $this->assertAncestryMatchesFixture('attachment/expected/ParentMultipleAncestor.yml');
+    }
+
+    /**
+     * If $child has multiple descendants, they should be attached to $parent.
+     */
+    public function testChildMultipleDescendants()
+    {
+        $this->appendDataSet($this->createYamlDataSet('attachment/initial/ChildMultipleDescendant.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[2], [], [], [['1', '3'], ['1', '4']]);
+
+        $this->relation->attachAncestry($this->nodes[1], $this->nodes[2]);
+
+        $this->assertAncestryMatchesFixture('attachment/expected/ChildMultipleDescendant.yml');
+    }
+
+    /**
+     * If $parent and $child share an ancestor, nothing should be changed.
+     */
+    public function testSharedAncestor()
+    {
+        $this->appendDataSet($this->createYamlDataSet('SharedAncestor.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[2], $this->nodes[3]);
+
+        $this->relation->attachAncestry($this->nodes[2], $this->nodes[3]);
+
+        $this->assertAncestryMatchesFixture('SharedAncestor.yml');
+    }
+
+    /**
+     * If $parent and $child share a descendant, nothing should be changed.
+     */
+    public function testSharedDescendant()
+    {
+        $this->appendDataSet($this->createYamlDataSet('SharedDescendant.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[2]);
+
+        $this->relation->attachAncestry($this->nodes[1], $this->nodes[2]);
+
+        $this->assertAncestryMatchesFixture('SharedDescendant.yml');
+    }
+
+    /**
+     * If $parent has an isolated descendant, nothing should be changed.
+     */
+    public function testParentDescendant()
+    {
+        $this->appendDataSet($this->createYamlDataSet('SingleAncestry.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[1], $this->nodes[3]);
+
+        $this->relation->attachAncestry($this->nodes[1], $this->nodes[3]);
+
+        $this->assertAncestryMatchesFixture('SingleAncestry.yml');
+    }
+
+    /**
+     * If $child has an isolated ancestor, nothing should be changed.
+     */
+    public function testChildAncestor()
+    {
+        $this->appendDataSet($this->createYamlDataSet('SingleAncestry.yml'));
+
+        $this->doAttachmentAssertions($this->nodes[3], $this->nodes[2]);
+
+        $this->relation->attachAncestry($this->nodes[3], $this->nodes[2]);
+
+        $this->assertAncestryMatchesFixture('SingleAncestry.yml');
+    }
+
+    /**
+     * If $parent has mutliple ancestors and $child has multiple descendants, all relatives should be merged together.
+     *
+     * Graphically, this is what's happening:
+     * <samp>
      * 1   2
      *  \ /
-     *   3   6
+     *   3   4
      *  / \ /
-     * 4   5
+     * 5   6
      *    / \
      *   7   8.
-     *
-     * (Adding 3<-5)
+     * </samp>
+     * (Adding 3 <- 6)
      */
     public function testMultipleAncestorsMultipleDescendants()
     {
-        $rows = [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 3,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 3,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 4,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 4,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 4,
-        ], [
-            'ancestor_node_id'   => 6,
-            'descendant_node_id' => 5,
-        ], [
-            'ancestor_node_id'   => 6,
-            'descendant_node_id' => 7,
-        ], [
-            'ancestor_node_id'   => 6,
-            'descendant_node_id' => 8,
-        ], [
-            'ancestor_node_id'   => 5,
-            'descendant_node_id' => 7,
-        ], [
-            'ancestor_node_id'   => 5,
-            'descendant_node_id' => 8,
-        ]];
-
-        $this->addRowsToAncestry($rows);
+        $this->appendDataSet($this->createYamlDataSet('attachment/initial/MultipleAncestorMultipleDescendant.yml'));
 
         $expectedJoined = [
             ['1', '7'],
@@ -297,8 +213,8 @@ class IndirectAttachTest extends TestCase
         ];
 
         $expChildAncestors = [
-            ['1', '5'],
-            ['2', '5'],
+            ['1', '6'],
+            ['2', '6'],
         ];
 
         $expParentDescendants = [
@@ -306,37 +222,11 @@ class IndirectAttachTest extends TestCase
             ['3', '8'],
         ];
 
-        $this->doAttachmentAssertions($this->nodes[3], $this->nodes[5], $expectedJoined, $expChildAncestors, $expParentDescendants);
+        $this->doAttachmentAssertions($this->nodes[3], $this->nodes[6], $expectedJoined, $expChildAncestors, $expParentDescendants);
 
-        $this->relation->attachAncestry($this->nodes[3], $this->nodes[5]);
+        $this->relation->attachAncestry($this->nodes[3], $this->nodes[6]);
 
-        $rows = array_merge($rows, [[
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 7,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 8,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 7,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 8,
-        ], [
-            'ancestor_node_id'   => 1,
-            'descendant_node_id' => 5,
-        ], [
-            'ancestor_node_id'   => 2,
-            'descendant_node_id' => 5,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 7,
-        ], [
-            'ancestor_node_id'   => 3,
-            'descendant_node_id' => 8,
-        ]]);
-
-        $this->assertAncestryHasRows($rows);
+        $this->assertAncestryMatchesFixture('attachment/expected/MultipleAncestorMultipleDescendant.yml');
     }
 
     protected function compareRows(array $a, array $b, $colNum = 0)
@@ -363,7 +253,7 @@ class IndirectAttachTest extends TestCase
         $this->appendDataSet($existingAncestry);
     }
 
-    protected function assertAncestryHasRows(array $rows)
+    protected function assertAncestryMatchesArray(array $rows)
     {
         usort($rows, [$this, 'compareRows']);
 
@@ -374,12 +264,21 @@ class IndirectAttachTest extends TestCase
         $this->assertTablesEqual($expected, $actual);
     }
 
+    protected function assertAncestryMatchesFixture($path)
+    {
+        $expected = $this->createYamlDataSet($path)->getTable('node_ancestry');
+
+        $actual = $this->getActualTableValues('node_ancestry', $this->orderBy);
+
+        $this->assertTablesEqual($expected, $actual);
+    }
+
     protected function doAttachmentAssertions(
         TestModel $parent,
         TestModel $child,
-        array $expJoined,
-        array $expChildAncestors,
-        array $expParentDescendants
+        array $expJoined = [],
+        array $expChildAncestors = [],
+        array $expParentDescendants = []
     ) {
         $actualJoinedIds         = $this->relation->getQueryForJoinedNodes($parent, $child)->get();
         $actualChildAncestors    = $this->relation->getQueryForChildAncestors($parent, $child)->get();

@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Load composer dependencies, create SQLite database & connection, fire the migration.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Test
+ */
+
 require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Illuminate\Database\Capsule\Manager;
@@ -15,5 +22,7 @@ $dbManager->addConnection([
 $dbManager->setEventDispatcher(new Dispatcher());
 $dbManager->setAsGlobal();
 $dbManager->bootEloquent();
+
+$dbManager->connection()->setFetchMode(\PDO::FETCH_NUM);
 
 require_once 'migration.php';

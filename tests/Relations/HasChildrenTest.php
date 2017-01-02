@@ -2,20 +2,33 @@
 
 namespace BeBat\PolyTree\Test\Relations;
 
+use BeBat\PolyTree\Model;
 use BeBat\PolyTree\Relations\HasChildren;
 use Mockery;
 use PHPUnit_Framework_TestCase as TestCase;
 
+/**
+ * Test behavior of HasChildren relationship.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Test
+ */
 class HasChildrenTest extends TestCase
 {
+    /**
+     * Check mock expectations.
+     */
     public function tearDown()
     {
         Mockery::close();
     }
 
+    /**
+     * Test that parameters are forwarded to the parent constructor correctly.
+     */
     public function testConstructor()
     {
-        $parentNode = Mockery::mock('BeBat\PolyTree\Model[getParentKeyName,getChildKeyName]');
+        $parentNode = Mockery::mock(Model::class . '[getParentKeyName,getChildKeyName]');
 
         $parentNode->shouldReceive('getParentKeyName')->withNoArgs()->andReturn('parent_key_name');
         $parentNode->shouldReceive('getChildKeyName')->withNoArgs()->andReturn('child_key_name');

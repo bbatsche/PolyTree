@@ -1,5 +1,12 @@
 <?php
 
+/**
+ * Create node, reltaions, & ancestry tables.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Test
+ */
+
 use Illuminate\Database\Capsule\Manager;
 
 Manager::schema()->create('nodes', function ($table) {
