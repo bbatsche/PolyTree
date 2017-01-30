@@ -23,6 +23,6 @@ $dbManager->setEventDispatcher(new Dispatcher());
 $dbManager->setAsGlobal();
 $dbManager->bootEloquent();
 
-$dbManager->connection()->setFetchMode(\PDO::FETCH_NUM);
+$dbManager->setFetchMode(PDO::FETCH_NUM);
 
 require_once 'migration.php';
