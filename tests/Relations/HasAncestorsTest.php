@@ -99,16 +99,6 @@ class HasAncestorsTest extends TestCase
     }
 
     /**
-     * Test that parameters are forwarded to the parent constructor correctly.
-     */
-    public function testConstructor()
-    {
-        // Format is [table].[key_name] and we only care about the key name
-        verify('foreign key is descendant', $this->relation->getForeignKey())->endsWith('.descendant_key_name');
-        verify('other key is ancestor',     $this->relation->getOtherKey())->endsWith('.ancestor_key_name');
-    }
-
-    /**
      * Test that attach() throws an exception if a cycle would be created.
      */
     public function testAttachThrowsCycleException()

@@ -2,10 +2,17 @@
 
 namespace BeBat\PolyTree\Test\Database;
 
+use BeBat\PolyTree\Contracts\Node;
 use BeBat\PolyTree\Test\TestIndirectRelation as Indirect;
 use BeBat\PolyTree\Test\TestModel;
 use Illuminate\Support\Collection;
 
+/**
+ * Database backed tests for attaching ancestry.
+ *
+ * @package BeBat\PolyTree
+ * @subpackage Test
+ */
 class IndirectAttachTest extends TestCase
 {
     /**
@@ -229,6 +236,15 @@ class IndirectAttachTest extends TestCase
         $this->assertAncestryMatchesFixture('attachment/expected/MultipleAncestorMultipleDescendant.yml');
     }
 
+    /**
+     * Recursively compare values in $a & $b looking at each column in order defined by ::$orderBy
+     *
+     * @param array $a
+     * @param array $b
+     * @param int $colNum
+     *
+     * @return int
+     */
     protected function compareRows(array $a, array $b, $colNum = 0)
     {
         if (!isset($this->orderBy[$colNum])) {
@@ -246,6 +262,11 @@ class IndirectAttachTest extends TestCase
         return $this->compareRows($a, $b, $colNum + 1);
     }
 
+    /**
+     * Add the $rows as an array dataset to the ancestry table.
+     *
+     * @param array $rows
+     */
     protected function addRowsToAncestry(array $rows)
     {
         $existingAncestry = $this->createSimpleArrayDataSet('node_ancestry', $rows);
@@ -253,6 +274,11 @@ class IndirectAttachTest extends TestCase
         $this->appendDataSet($existingAncestry);
     }
 
+    /**
+     * Assert that the data in ancestry table matches $rows
+     *
+     * @param array $rows
+     */
     protected function assertAncestryMatchesArray(array $rows)
     {
         usort($rows, [$this, 'compareRows']);
@@ -264,6 +290,11 @@ class IndirectAttachTest extends TestCase
         $this->assertTablesEqual($expected, $actual);
     }
 
+    /**
+     * Assert that the data in ancestry table matches a given YAML fixture.
+     *
+     * @param string $path
+     */
     protected function assertAncestryMatchesFixture($path)
     {
         $expected = $this->createYamlDataSet($path)->getTable('node_ancestry');
@@ -273,9 +304,19 @@ class IndirectAttachTest extends TestCase
         $this->assertTablesEqual($expected, $actual);
     }
 
+    /**
+     * Check various query building functions return the expected results for $parent and $child.
+     *
+     * @param BeBat\PolyTree\Contracts\Node $parent
+     * @param BeBat\PolyTree\Contracts\Node $child
+     * @param array                         $expJoined            Expected IDs cross joined between
+     *                                                            $parent's ancestors and $child's descendants
+     * @param array                         $expChildAncestors    Expected IDs with $parent's ancestors and $child
+     * @param array                         $expParentDescendants Expected IDs with $parent and $child's descendants
+     */
     protected function doAttachmentAssertions(
-        TestModel $parent,
-        TestModel $child,
+        Node $parent,
+        Node $child,
         array $expJoined = [],
         array $expChildAncestors = [],
         array $expParentDescendants = []
